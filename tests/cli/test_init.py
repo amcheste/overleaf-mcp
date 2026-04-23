@@ -79,3 +79,22 @@ def test_init_rejects_empty_alias(
     result = CliRunner().invoke(cli, ["init"], input="   \n")
     assert result.exit_code != 0
     assert "alias cannot be empty" in result.output
+
+
+def test_init_rejects_empty_project_id(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    path = tmp_path / "config.toml"
+    monkeypatch.setenv("OVERLEAF_MCP_CONFIG", str(path))
+
+    result = CliRunner().invoke(cli, ["init"], input="alias\n   \n")
+    assert result.exit_code != 0
+    assert "project_id cannot be empty" in result.output
+
+
+def test_serve_invokes_stdio_main(monkeypatch: pytest.MonkeyPatch) -> None:
+    called = []
+    monkeypatch.setattr("overleaf_mcp.cli.main._serve_main", lambda: called.append(True))
+    result = CliRunner().invoke(cli, ["serve"])
+    assert result.exit_code == 0
+    assert called == [True]
