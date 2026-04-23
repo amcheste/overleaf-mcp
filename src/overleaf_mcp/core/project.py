@@ -59,3 +59,23 @@ def _git_config(key: str) -> str:
             f"'git config --global {key} <value>' to configure it."
         )
     return value
+
+
+def probe_remote(project_id: str, token: str, timeout: float = 10.0) -> bool:
+    """Check whether a token can reach an Overleaf project's git remote.
+
+    Uses 'git ls-remote' which reads refs without cloning. Returns True on
+    success, False on any failure (auth, network, timeout). Never raises.
+    """
+    url = f"https://git:{token}@git.overleaf.com/{project_id}"
+    try:
+        subprocess.run(
+            ["git", "ls-remote", url],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        return True
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+        return False

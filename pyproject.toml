@@ -64,7 +64,6 @@ source = ["src/overleaf_mcp"]
 branch = true
 omit = [
     "src/overleaf_mcp/__main__.py",
-    "src/overleaf_mcp/cli/*",
     "src/overleaf_mcp/transports/*",
 ]
 

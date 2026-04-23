@@ -39,3 +39,16 @@ def load_config(path: Path) -> dict[str, ProjectConfig]:
         alias: ProjectConfig(alias=alias, **fields)
         for alias, fields in data.get("projects", {}).items()
     }
+
+
+def save_config(path: Path, configs: dict[str, ProjectConfig]) -> None:
+    """Write project configs to a TOML file, creating parent dirs if needed."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines: list[str] = []
+    for alias, cfg in configs.items():
+        lines.append(f"[projects.{alias}]")
+        lines.append(f'project_id = "{cfg.project_id}"')
+        if cfg.display_name:
+            lines.append(f'display_name = "{cfg.display_name}"')
+        lines.append("")
+    path.write_text("\n".join(lines))
