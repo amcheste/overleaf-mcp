@@ -53,6 +53,12 @@ def test_clone_fails_on_invalid_remote(tmp_path: Path) -> None:
         GitClient.clone(str(tmp_path / "nonexistent"), tmp_path / "dest")
 
 
+def test_run_failure_raises_git_operation_error(tmp_path: Path) -> None:
+    gc = GitClient(tmp_path)
+    with pytest.raises(GitOperationError, match="git status failed"):
+        gc.working_tree_dirty()
+
+
 def test_working_tree_dirty_false_after_clone(
     tmp_repo_from_remote: tuple[Path, GitClient],
 ) -> None:
