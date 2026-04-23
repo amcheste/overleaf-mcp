@@ -4,3 +4,7 @@ class PathEscapeError(ValueError):
 
 class TokenNotFoundError(Exception):
     """Raised when no Overleaf token can be resolved for a given alias."""
+
+
+class GitOperationError(RuntimeError):
+    """Raised when a git subprocess invocation fails. Includes stderr in the message."""
