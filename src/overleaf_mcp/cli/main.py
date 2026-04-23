@@ -1,5 +1,6 @@
 import click
 
+from overleaf_mcp.cli.auth import auth
 from overleaf_mcp.core.config import ProjectConfig, get_config_path, load_config, save_config
 from overleaf_mcp.transports.stdio import main as _serve_main
 
@@ -8,6 +9,9 @@ from overleaf_mcp.transports.stdio import main as _serve_main
 @click.version_option()
 def cli() -> None:
     """Overleaf MCP Server."""
+
+
+cli.add_command(auth)
 
 
 @cli.command()
