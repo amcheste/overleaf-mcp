@@ -38,6 +38,7 @@ dev = [
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.0.0",
     "ruff>=0.3.0",
+    "keyrings.alt>=5.0.0",
 ]
 
 [project.scripts]
@@ -58,8 +59,9 @@ target-version = "py311"
 testpaths = ["tests"]
 
 [tool.coverage.run]
-source = ["src/overleaf_mcp"]
+source = ["src/overleaf_mcp/core"]
 branch = true
 
 [tool.coverage.report]
 show_missing = true
+fail_under = 80
