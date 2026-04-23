@@ -72,6 +72,9 @@ class GitClient:
         result = self._run(["status", "--porcelain"])
         return bool(result.stdout.strip())
 
+    def current_head(self) -> str:
+        return self._run(["rev-parse", "HEAD"]).stdout.strip()
+
     def write_file(self, path: Path, content: str) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content)

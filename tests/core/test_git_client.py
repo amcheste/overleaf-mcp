@@ -148,6 +148,18 @@ def test_list_files_returns_tracked_files(
     assert names == {"README.md", "a.tex", "b.md"}
 
 
+def test_current_head_changes_after_commit(
+    tmp_repo_from_remote: tuple[Path, GitClient],
+) -> None:
+    repo, gc = tmp_repo_from_remote
+    before = gc.current_head()
+    gc.write_file(repo / "n.tex", "n")
+    gc.commit("add", "T <t@t.test>")
+    after = gc.current_head()
+    assert before != after
+    assert len(after) == 40
+
+
 def test_list_files_filters_by_extension(
     tmp_repo_from_remote: tuple[Path, GitClient],
 ) -> None:
