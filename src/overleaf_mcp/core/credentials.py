@@ -9,6 +9,28 @@ SERVICE = "overleaf-mcp"
 ACCOUNT_LEVEL_KEY = "__account__"
 
 
+def _key_for(alias: str | None) -> str:
+    return alias if alias else ACCOUNT_LEVEL_KEY
+
+
+def store_token(alias: str | None, token: str) -> None:
+    """Store a token in the keyring. alias=None stores the account-level fallback."""
+    keyring.set_password(SERVICE, _key_for(alias), token)
+
+
+def delete_token(alias: str | None) -> bool:
+    """Remove a token. Returns False if none was stored; True if one was removed."""
+    try:
+        keyring.delete_password(SERVICE, _key_for(alias))
+        return True
+    except keyring.errors.PasswordDeleteError:
+        return False
+
+
+def has_token(alias: str | None) -> bool:
+    return keyring.get_password(SERVICE, _key_for(alias)) is not None
+
+
 def resolve_token(alias: str) -> str:
     """Find an Overleaf token for the given project alias.
 
