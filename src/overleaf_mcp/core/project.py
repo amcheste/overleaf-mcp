@@ -1,9 +1,18 @@
 import os
 import subprocess
+import tempfile
 from pathlib import Path
 
 from overleaf_mcp.core.config import ProjectConfig
 from overleaf_mcp.core.git_client import GitClient
+
+
+_ASKPASS_SCRIPT = """#!/bin/sh
+case "$1" in
+  *[Uu]sername*) printf '%s' "$GIT_USERNAME" ;;
+  *[Pp]assword*) printf '%s' "$GIT_PASSWORD" ;;
+esac
+"""
 
 
 DEFAULT_CACHE_ROOT = Path.home() / ".cache" / "overleaf-mcp"
@@ -67,14 +76,47 @@ def probe_remote(project_id: str, token: str, timeout: float = 10.0) -> bool:
 
     Uses 'git ls-remote' which reads refs without cloning. Returns True on
     success, False on any failure (auth, network, timeout). Never raises.
+
+    The token is passed via GIT_USERNAME / GIT_PASSWORD env vars and read
+    by a temporary GIT_ASKPASS helper script — the token never appears on
+    the subprocess command line or on disk.
     """
     url = f"https://git.overleaf.com/{project_id}"
-    env = os.environ.copy()
-    env["GIT_ASKPASS"] = "echo"
-    env["GIT_USERNAME"] = "git"
-    env["GIT_PASSWORD"] = token
-    env["GIT_TERMINAL_PROMPT"] = "0"
+
+    script_path = None
     try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".sh", delete=False, encoding="utf-8"
+        ) as f:
+            f.write(_ASKPASS_SCRIPT)
+            script_path = Path(f.name)
+        script_path.chmod(0o700)
+        env = os.environ.copy()
+        env["GIT_ASKPASS"] = str(script_path)
+        env["GIT_USERNAME"] = "git"
+        env["GIT_PASSWORD"] = token
+        env["GIT_TERMINAL_PROMPT"] = "0"
+        subprocess.run(
+            ["git", "ls-remote", url],
+            check=True,
+            env=env,
+            capture_output=True,
+            timeout=10.0,
+        )
+        return True
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+        return False
+    finally:
+        if script_path is not None:
+            script_path.unlink(missing_ok=True)
+
+    try:
+        script_path.chmod(0o700)
+        env = os.environ.copy()
+        env["GIT_ASKPASS"] = str(script_path)
+        env["GIT_USERNAME"] = "git"
+        env["GIT_PASSWORD"] = token
+        env["GIT_TERMINAL_PROMPT"] = "0"
         subprocess.run(
             ["git", "ls-remote", url],
             check=True,
@@ -86,4 +128,6 @@ def probe_remote(project_id: str, token: str, timeout: float = 10.0) -> bool:
         return True
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
         return False
+    finally:
+        script_path.unlink(missing_ok=True)
 
