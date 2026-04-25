@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "overleaf-mcp-server"
+version = "0.1.0"
+description = "A minimal, auditable MCP server for editing Overleaf projects via Git"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "Alan Chester", email = "amcheste@gmail.com" },
+]
+keywords = ["overleaf", "latex", "mcp", "claude", "academic"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Text Processing :: Markup :: LaTeX",
+]
+dependencies = [
+    "mcp>=1.0.0",
+    "keyring>=24.0.0",
+    "pydantic>=2.0.0",
+    "click>=8.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.3.0",
+    "keyrings.alt>=5.0.0",
+]
+
+[project.scripts]
+overleaf-mcp = "overleaf_mcp.cli.main:cli"
+
+[project.urls]
+Homepage = "https://github.com/amcheste/overleaf-mcp"
+Issues = "https://github.com/amcheste/overleaf-mcp/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/overleaf_mcp"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["src/overleaf_mcp"]
+branch = true
+omit = [
+    "src/overleaf_mcp/__main__.py",
+    "src/overleaf_mcp/transports/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80
