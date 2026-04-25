@@ -82,11 +82,34 @@ def probe_remote(project_id: str, token: str, timeout: float = 10.0) -> bool:
     the subprocess command line or on disk.
     """
     url = f"https://git.overleaf.com/{project_id}"
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".sh", delete=False, encoding="utf-8"
-    ) as f:
-        f.write(_ASKPASS_SCRIPT)
-        script_path = Path(f.name)
+
+    script_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".sh", delete=False, encoding="utf-8"
+        ) as f:
+            f.write(_ASKPASS_SCRIPT)
+            script_path = Path(f.name)
+        script_path.chmod(0o700)
+        env = os.environ.copy()
+        env["GIT_ASKPASS"] = str(script_path)
+        env["GIT_USERNAME"] = "git"
+        env["GIT_PASSWORD"] = token
+        env["GIT_TERMINAL_PROMPT"] = "0"
+        subprocess.run(
+            ["git", "ls-remote", url],
+            check=True,
+            env=env,
+            capture_output=True,
+            timeout=10.0,
+        )
+        return True
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+        return False
+    finally:
+        if script_path is not None:
+            script_path.unlink(missing_ok=True)
+
     try:
         script_path.chmod(0o700)
         env = os.environ.copy()
