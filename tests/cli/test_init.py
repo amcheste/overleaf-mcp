@@ -98,3 +98,12 @@ def test_serve_invokes_stdio_main(monkeypatch: pytest.MonkeyPatch) -> None:
     result = CliRunner().invoke(cli, ["serve"])
     assert result.exit_code == 0
     assert called == [True]
+
+
+def test_version_flag_prints_package_version() -> None:
+    """Regression test for the v0.1.0 bug where --version crashed because
+    click's auto-detection looked up 'overleaf_mcp' (module name) instead
+    of 'overleaf-mcp-server' (PyPI distribution name)."""
+    result = CliRunner().invoke(cli, ["--version"])
+    assert result.exit_code == 0
+    assert "version" in result.output.lower()
