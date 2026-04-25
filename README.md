@@ -1,5 +1,122 @@
 # Overleaf MCP Server
 
-A minimal, auditable MCP server for editing Overleaf projects via their Git integration.
+A minimal, auditable MCP server for editing Overleaf projects from Claude.
 
-Status: pre-release, under active development. See CHANGELOG once v0.1.0 ships.
+## What it is
+
+A local Model Context Protocol server that gives Claude five tools for working with an Overleaf project: `list_projects`, `list_files`, `read_file`, `edit_file`, `sync`. Every change goes through Overleaf's per-project Git remote, so the round-trip is `Claude → MCP server → git push → Overleaf web UI`.
+
+## What it is not
+
+- Not a replacement for Overleaf
+- Not a hosted multi-user service — single researcher, single Claude session, stdio transport
+- Not a LaTeX compiler — Overleaf still does the rendering
+- No branch / merge / diff tooling — use git directly for that
+- No real-time collaboration with humans editing in the Overleaf web UI at the same moment (use Overleaf's native real-time collab for that; the MCP server pulls before every write to stay honest, but doesn't subscribe to live updates)
+
+If those constraints feel restrictive, that's deliberate — see the [project notes](CLAUDE.md) for the design rationale.
+
+## Requirements
+
+- Python 3.11 or newer
+- A **paid** Overleaf account (Git integration is a paid feature)
+- An Overleaf Git authentication token: Overleaf web UI → Account Settings → Git Integration → New token
+- `git` on your `PATH`
+- `git config user.name` and `git config user.email` set globally (the server signs commits with this identity)
+
+## Install
+
+```sh
+pipx install overleaf-mcp-server
+```
+
+or with `uv`:
+
+```sh
+uv tool install overleaf-mcp-server
+```
+
+Either gives you the `overleaf-mcp` command.
+
+## Quick start
+
+```sh
+# 1. Configure a project alias
+overleaf-mcp init
+#   Project alias (short nickname): my-paper
+#   Overleaf project ID: 5f4a...           # from the project URL on overleaf.com
+#   Display name (optional): My Paper
+
+# 2. Store your Overleaf token in the OS keychain
+overleaf-mcp auth add --project my-paper
+#   Overleaf token: ****                    # paste, hidden input
+
+# 3. Clone the project locally (one-time)
+git clone https://git.overleaf.com/<project_id> ~/.cache/overleaf-mcp/my-paper
+
+# 4. Verify
+overleaf-mcp doctor
+```
+
+`doctor` prints a clean pass/fail report. If everything is green you're ready to wire up Claude Desktop.
+
+### Claude Desktop configuration
+
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows) and add:
+
+```json
+{
+  "mcpServers": {
+    "overleaf": {
+      "command": "overleaf-mcp",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+Fully quit and relaunch Claude Desktop (cmd-Q on macOS — closing the window isn't enough). In a new conversation, ask Claude something like *"use overleaf list_projects"* to verify.
+
+## Tools
+
+| Tool | What it does |
+|---|---|
+| `list_projects` | Lists configured Overleaf project aliases |
+| `list_files` | Lists files tracked in the project's git clone (optional extension filter) |
+| `read_file` | Reads a file from the project |
+| `edit_file` | Pulls latest, overwrites a file, commits, pushes to Overleaf |
+| `sync` | Pulls latest from Overleaf into the local clone |
+
+## GitHub mirror (optional)
+
+The MCP server only knows about your Overleaf remote. If you want a GitHub backup of a project, add it as a second remote on the local clone:
+
+```sh
+cd ~/.cache/overleaf-mcp/my-paper
+git remote add github git@github.com:you/my-paper-mirror.git
+git push github main
+```
+
+Then `git push github main` whenever you want to update the mirror, or wire up a cron / launchd job. The MCP server intentionally doesn't manage GitHub — that boundary keeps the server's surface small and the mirror under your control.
+
+## Security
+
+- Tokens are stored in the OS keychain (`keyring` library — macOS Keychain, Windows Credential Manager, libsecret on Linux). Never on disk.
+- The config file (`~/.config/overleaf-mcp/config.toml`) contains aliases and project IDs only — no secrets. Safe to put under version control if you really want to.
+- Subprocess git invocations pass tokens via env vars consumed by a transient `GIT_ASKPASS` script. Tokens never appear on the subprocess command line, so they don't show in `ps`.
+- The server only talks to `git.overleaf.com` and the local filesystem. No telemetry, no analytics, no other network traffic.
+
+## Limitations
+
+- **Regex section parser.** Handles `\section`, `\subsection`, `\subsubsection` (and starred variants) at the start of a line. Doesn't follow `\input{}` / `\include{}` across files, doesn't expand custom section macros, and doesn't parse titles with nested `{}` groups. Swap-in of a `pylatexenc`-backed parser is staged behind the abstract base class for a future minor release.
+- **Single-user assumption.** No locks, no concurrent-edit detection beyond `git pull --ff-only` (which fails fast if the local clone has diverged). Real-time collaboration with humans editing in the Overleaf web UI works because the server pulls before every write, but it's not a streaming sync.
+- **stdio transport only in v0.1.** HTTP/SSE for remote / multi-client setups is staged for v0.2.
+- **No clone orchestration.** `doctor` reports if the local clone is missing and prints the `git clone` command; the MCP server itself doesn't create or refresh the cache. Plain git is the right tool there.
+
+## Contributing
+
+Bug reports and PRs welcome. See [CLAUDE.md](CLAUDE.md) for project-local design notes if you're working on the server itself.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
