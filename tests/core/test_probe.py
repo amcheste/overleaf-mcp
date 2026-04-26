@@ -82,3 +82,67 @@ def test_probe_cleans_up_askpass_script_on_failure(
 
     assert probe_remote("proj", "tok") is False
     assert leaked and not leaked[0].exists()
+
+
+def test_askpass_script_returns_username_when_prompted(tmp_path: Path) -> None:
+    """Invoke the askpass script the same way git would and assert it returns
+    the configured username.
+
+    This guards the class of bug that shipped in v0.1.0: env vars were set
+    but the askpass mechanism wasn't actually reading them, so the token
+    never reached git. A test that only checks env-var presence wouldn't
+    have caught that — the script behavior matters."""
+    from overleaf_mcp.core.project import _ASKPASS_SCRIPT
+
+    script_path = tmp_path / "askpass.sh"
+    script_path.write_text(_ASKPASS_SCRIPT)
+    script_path.chmod(0o700)
+
+    result = subprocess.run(
+        [str(script_path), "Username for 'https://git.overleaf.com': "],
+        env={"GIT_USERNAME": "git", "GIT_PASSWORD": "secret"},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert result.stdout == "git"
+
+
+def test_askpass_script_returns_password_when_prompted(tmp_path: Path) -> None:
+    from overleaf_mcp.core.project import _ASKPASS_SCRIPT
+
+    script_path = tmp_path / "askpass.sh"
+    script_path.write_text(_ASKPASS_SCRIPT)
+    script_path.chmod(0o700)
+
+    result = subprocess.run(
+        [str(script_path), "Password for 'https://git@git.overleaf.com': "],
+        env={"GIT_USERNAME": "git", "GIT_PASSWORD": "my-token"},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert result.stdout == "my-token"
+
+
+def test_askpass_script_handles_lowercase_prompts(tmp_path: Path) -> None:
+    """Some git versions / locales emit lowercase prompts. The case-insensitive
+    pattern in the script should handle both."""
+    from overleaf_mcp.core.project import _ASKPASS_SCRIPT
+
+    script_path = tmp_path / "askpass.sh"
+    script_path.write_text(_ASKPASS_SCRIPT)
+    script_path.chmod(0o700)
+
+    for prompt, expected in [
+        ("username for foo: ", "git"),
+        ("password for bar: ", "tok"),
+    ]:
+        result = subprocess.run(
+            [str(script_path), prompt],
+            env={"GIT_USERNAME": "git", "GIT_PASSWORD": "tok"},
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        assert result.stdout == expected, f"prompt={prompt!r}"
