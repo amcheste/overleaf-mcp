@@ -84,8 +84,12 @@ def test_get_git_author_missing_raises(monkeypatch: pytest.MonkeyPatch) -> None:
         return subprocess.CompletedProcess(args, 1, stdout="", stderr="")
 
     monkeypatch.setattr("overleaf_mcp.core.project.subprocess.run", fake_run)
-    with pytest.raises(RuntimeError, match="git config user.name is not set"):
+    with pytest.raises(RuntimeError) as exc_info:
         get_git_author()
+    msg = str(exc_info.value)
+    assert "git config user.name is not set" in msg
+    # The error must give a concrete fix command — not just diagnose.
+    assert "git config --global user.name" in msg
 
 
 def test_get_git_author_empty_value_raises(monkeypatch: pytest.MonkeyPatch) -> None:

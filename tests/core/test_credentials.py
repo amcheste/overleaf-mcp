@@ -52,5 +52,12 @@ def test_alias_normalized_for_env(fake_keyring: None, monkeypatch: pytest.Monkey
 
 
 def test_raises_when_nothing_found(fake_keyring: None) -> None:
-    with pytest.raises(TokenNotFoundError, match="hicss"):
+    """The error message is what Claude (or the user) sees. Lock in that
+    it contains the alias *and* a concrete next-step command, not just
+    a generic 'not found'."""
+    with pytest.raises(TokenNotFoundError) as exc_info:
         resolve_token("hicss")
+    msg = str(exc_info.value)
+    assert "hicss" in msg
+    assert "overleaf-mcp auth add --project hicss" in msg
+    assert "OVERLEAF_TOKEN" in msg

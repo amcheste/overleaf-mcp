@@ -55,8 +55,13 @@ def test_clone_fails_on_invalid_remote(tmp_path: Path) -> None:
 
 def test_run_failure_raises_git_operation_error(tmp_path: Path) -> None:
     gc = GitClient(tmp_path)
-    with pytest.raises(GitOperationError, match="git status failed"):
+    with pytest.raises(GitOperationError) as exc_info:
         gc.working_tree_dirty()
+    msg = str(exc_info.value)
+    # The wrapper format identifies which git command failed, AND includes
+    # git's own stderr so debugging doesn't require re-running by hand.
+    assert "git status failed" in msg
+    assert "not a git repository" in msg.lower() or "fatal" in msg.lower()
 
 
 def test_working_tree_dirty_false_after_clone(
