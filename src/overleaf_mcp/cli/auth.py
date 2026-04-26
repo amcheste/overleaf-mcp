@@ -1,3 +1,6 @@
+import os
+import sys
+
 import click
 
 from overleaf_mcp.core.config import get_config_path, load_config
@@ -20,9 +23,52 @@ def auth() -> None:
     default=None,
     help="Project alias; omit to store as the account-level fallback.",
 )
-def auth_add(project: str | None) -> None:
-    """Store an Overleaf token in the OS keychain."""
-    token = click.prompt("Overleaf token", hide_input=True).strip()
+@click.option(
+    "--token-stdin",
+    is_flag=True,
+    default=False,
+    help="Read the token from stdin instead of prompting.  Recommended "
+         "for scripts: `printf '%s' \"$TOKEN\" | overleaf-mcp auth add ...`",
+)
+@click.option(
+    "--token-from-env",
+    "token_env_var",
+    default=None,
+    metavar="VAR_NAME",
+    help="Read the token from the given environment variable.  Useful "
+         "for CI: `OVERLEAF_TOKEN=... overleaf-mcp auth add ... "
+         "--token-from-env OVERLEAF_TOKEN`",
+)
+def auth_add(
+    project: str | None,
+    token_stdin: bool,
+    token_env_var: str | None,
+) -> None:
+    """Store an Overleaf token in the OS keychain.
+
+    Interactive when run bare (prompts with hidden input).  Scriptable
+    via --token-stdin (preferred) or --token-from-env.  Mutually
+    exclusive: pass at most one of those two flags.
+
+    There is no `--token VALUE` flag on purpose — values on the command
+    line leak into the process listing (`ps`).
+    """
+    if token_stdin and token_env_var:
+        raise click.UsageError(
+            "use at most one of --token-stdin / --token-from-env"
+        )
+
+    if token_stdin:
+        token = sys.stdin.read().strip()
+    elif token_env_var:
+        token = (os.environ.get(token_env_var) or "").strip()
+        if not token:
+            raise click.UsageError(
+                f"environment variable {token_env_var!r} is empty or unset"
+            )
+    else:
+        token = click.prompt("Overleaf token", hide_input=True).strip()
+
     if not token:
         raise click.UsageError("token cannot be empty")
 
