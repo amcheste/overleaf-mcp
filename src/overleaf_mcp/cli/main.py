@@ -11,7 +11,7 @@ from overleaf_mcp.transports.stdio import main as _serve_main
 
 
 @click.group()
-@click.version_option()
+@click.version_option(package_name="overleaf-mcp-server")
 def cli() -> None:
     """Overleaf MCP Server."""
 

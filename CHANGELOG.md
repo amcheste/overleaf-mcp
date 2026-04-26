@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.1.1] - Patch release
+
+### Fixed
+
+- `overleaf-mcp --version` no longer crashes with `RuntimeError: 'overleaf_mcp' is not installed`. The CLI now passes `package_name="overleaf-mcp-server"` to click's `version_option`, so the metadata lookup targets the PyPI distribution name rather than the Python module name. All other commands were unaffected by the bug.
+
 ### Planned for v0.2
 
 - `get_sections` and `get_section_content` tools using the existing `SectionParser` interface
