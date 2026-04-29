@@ -26,27 +26,92 @@ def serve() -> None:
 
 
 @cli.command()
-def init() -> None:
-    """Configure a project alias in the config file."""
+@click.option(
+    "--alias",
+    "alias_opt",
+    default=None,
+    help="Project alias (short nickname).  Skips the prompt when set.",
+)
+@click.option(
+    "--project-id",
+    "project_id_opt",
+    default=None,
+    help="Overleaf project ID.  Skips the prompt when set.",
+)
+@click.option(
+    "--display-name",
+    "display_name_opt",
+    default=None,
+    help="Optional display name.  Use \"\" to clear; skips the prompt when set.",
+)
+@click.option(
+    "--force",
+    is_flag=True,
+    default=False,
+    help="Overwrite an existing alias without prompting for confirmation.",
+)
+def init(
+    alias_opt: str | None,
+    project_id_opt: str | None,
+    display_name_opt: str | None,
+    force: bool,
+) -> None:
+    """Configure a project alias in the config file.
+
+    Interactive when called bare.  Passing --alias engages fully
+    non-interactive mode: --project-id becomes required, --display-name
+    defaults to empty, and an existing alias requires --force to
+    overwrite (no confirm prompt).
+    """
     path = get_config_path()
     configs = load_config(path) if path.exists() else {}
 
-    alias = click.prompt("Project alias (short nickname)").strip()
+    # Non-interactive mode is signalled by --alias being set. In that
+    # mode we never prompt for anything — missing required flags are
+    # immediate UsageError, missing optional flags use empty defaults.
+    non_interactive = alias_opt is not None
+
+    if non_interactive:
+        alias = alias_opt.strip()
+    else:
+        alias = click.prompt("Project alias (short nickname)").strip()
     if not alias:
         raise click.UsageError("alias cannot be empty")
-    if alias in configs and not click.confirm(
-        f"Alias '{alias}' already exists. Overwrite?", default=False
-    ):
-        click.echo("Aborted.")
-        raise click.Abort()
 
-    project_id = click.prompt("Overleaf project ID").strip()
+    if alias in configs:
+        if force:
+            pass  # silently overwrite
+        elif non_interactive:
+            raise click.UsageError(
+                f"alias '{alias}' already exists; pass --force to overwrite"
+            )
+        elif not click.confirm(
+            f"Alias '{alias}' already exists. Overwrite?", default=False
+        ):
+            click.echo("Aborted.")
+            raise click.Abort()
+
+    if non_interactive:
+        if project_id_opt is None:
+            raise click.UsageError(
+                "--project-id is required when --alias is passed"
+            )
+        project_id = project_id_opt.strip()
+    else:
+        project_id = (
+            project_id_opt.strip()
+            if project_id_opt is not None
+            else click.prompt("Overleaf project ID").strip()
+        )
     if not project_id:
         raise click.UsageError("project_id cannot be empty")
 
-    display_name = click.prompt(
-        "Display name (optional)", default="", show_default=False
-    ).strip()
+    if non_interactive or display_name_opt is not None:
+        display_name = (display_name_opt or "").strip()
+    else:
+        display_name = click.prompt(
+            "Display name (optional)", default="", show_default=False
+        ).strip()
 
     configs[alias] = ProjectConfig(
         alias=alias,

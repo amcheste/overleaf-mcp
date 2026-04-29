@@ -1,0 +1,9 @@
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Default owner: every PR auto-requests review from @amcheste. This pairs
+# with the bot-account model documented in
+# https://github.com/amcheste/engineering-handbook/blob/main/docs/design/claude-bot-account.md
+# — bot-authored PRs become reviewable by routing through CODEOWNERS instead
+# of self-review.
+
+* @amcheste
