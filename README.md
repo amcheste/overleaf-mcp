@@ -1,6 +1,22 @@
-# Overleaf MCP Server
+<p align="center">
+  <img src="docs/images/banner.png" alt="Overleaf MCP Server" width="800">
+</p>
 
-A minimal, auditable MCP server for editing Overleaf projects from Claude.
+<h1 align="center">Overleaf MCP Server</h1>
+
+<p align="center">
+  <strong>Edit your Overleaf projects from Claude.</strong><br>
+  Local, auditable, single-user by design.
+</p>
+
+<p align="center">
+  <a href="https://pypi.org/project/overleaf-mcp-server/"><img alt="PyPI" src="https://img.shields.io/pypi/v/overleaf-mcp-server.svg"></a>
+  <a href="https://pypi.org/project/overleaf-mcp-server/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/overleaf-mcp-server.svg"></a>
+  <a href="https://github.com/amcheste/overleaf-mcp/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/overleaf-mcp-server.svg"></a>
+  <a href="https://github.com/amcheste/overleaf-mcp/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/amcheste/overleaf-mcp/actions/workflows/tests.yml/badge.svg?branch=develop"></a>
+</p>
+
+---
 
 ## What it is
 
