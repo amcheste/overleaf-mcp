@@ -40,6 +40,8 @@ Either gives you the `overleaf-mcp` command.
 
 ## Quick start
 
+### Interactive setup
+
 ```sh
 # 1. Configure a project alias
 overleaf-mcp init
@@ -57,6 +59,34 @@ git clone https://git.overleaf.com/<project_id> ~/.cache/overleaf-mcp/my-paper
 # 4. Verify
 overleaf-mcp doctor
 ```
+
+### Scripted setup (v0.1.2+)
+
+For provisioning scripts and CI, every prompt above has a flag-based equivalent:
+
+```sh
+# 1. Configure non-interactively (--alias engages non-interactive mode)
+overleaf-mcp init \
+    --alias my-paper \
+    --project-id 5f4a... \
+    --display-name "My Paper"
+# add --force to overwrite an existing alias without prompting
+
+# 2. Store the token via stdin (preferred — keeps it off the process command line)
+printf '%s' "$OVERLEAF_TOKEN" | overleaf-mcp auth add --project my-paper --token-stdin
+
+# or read from a named environment variable
+overleaf-mcp auth add --project my-paper --token-from-env OVERLEAF_TOKEN
+
+# 3. Clone the project (same as interactive)
+git clone "https://x:${OVERLEAF_TOKEN}@git.overleaf.com/<project_id>" \
+    ~/.cache/overleaf-mcp/my-paper
+
+# 4. Verify
+overleaf-mcp doctor
+```
+
+There is intentionally no `--token VALUE` flag.  Values on the command line leak via `ps`; pipe through stdin or use an env var instead.
 
 `doctor` prints a clean pass/fail report. If everything is green you're ready to wire up Claude Desktop.
 

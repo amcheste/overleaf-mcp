@@ -84,6 +84,117 @@ def test_auth_add_rejects_empty_token(
     assert has_token(None) is False
 
 
+# ──────────────────────────────────────────────────────────────────────
+# Non-interactive token sources (added in 0.1.2)
+# ──────────────────────────────────────────────────────────────────────
+
+
+def test_auth_add_token_stdin(
+    fake_keyring: None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """`echo $TOKEN | overleaf-mcp auth add --token-stdin` works."""
+    monkeypatch.setenv("OVERLEAF_MCP_CONFIG", str(tmp_path / "config.toml"))
+    result = CliRunner().invoke(
+        cli, ["auth", "add", "--token-stdin"], input="piped-token\n"
+    )
+    assert result.exit_code == 0
+    assert has_token(None) is True
+
+
+def test_auth_add_token_stdin_with_project_probes(
+    fake_keyring: None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    cfg = _write_config(
+        tmp_path / "config.toml",
+        '[projects.proj]\nproject_id = "p123"\n',
+    )
+    monkeypatch.setenv("OVERLEAF_MCP_CONFIG", str(cfg))
+    seen: list[tuple[str, str]] = []
+    monkeypatch.setattr(
+        "overleaf_mcp.cli.auth.probe_remote",
+        lambda pid, tok, **_: seen.append((pid, tok)) or True,
+    )
+
+    result = CliRunner().invoke(
+        cli,
+        ["auth", "add", "--project", "proj", "--token-stdin"],
+        input="piped\n",
+    )
+    assert result.exit_code == 0
+    assert seen == [("p123", "piped")]
+    assert "Verified against project 'proj'" in result.output
+
+
+def test_auth_add_token_from_env(
+    fake_keyring: None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("OVERLEAF_MCP_CONFIG", str(tmp_path / "config.toml"))
+    monkeypatch.setenv("MY_TOK", "env-token-value")
+
+    result = CliRunner().invoke(
+        cli, ["auth", "add", "--token-from-env", "MY_TOK"]
+    )
+    assert result.exit_code == 0
+    assert has_token(None) is True
+    # Token value must not appear in output
+    assert "env-token-value" not in result.output
+
+
+def test_auth_add_token_from_env_missing_var_errors(
+    fake_keyring: None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("OVERLEAF_MCP_CONFIG", str(tmp_path / "config.toml"))
+    monkeypatch.delenv("ABSENT", raising=False)
+
+    result = CliRunner().invoke(
+        cli, ["auth", "add", "--token-from-env", "ABSENT"]
+    )
+    assert result.exit_code != 0
+    assert "ABSENT" in result.output
+    assert has_token(None) is False
+
+
+def test_auth_add_token_from_env_empty_var_errors(
+    fake_keyring: None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Empty env var should fail explicitly, not silently store an empty token."""
+    monkeypatch.setenv("OVERLEAF_MCP_CONFIG", str(tmp_path / "config.toml"))
+    monkeypatch.setenv("EMPTYTOK", "   ")
+
+    result = CliRunner().invoke(
+        cli, ["auth", "add", "--token-from-env", "EMPTYTOK"]
+    )
+    assert result.exit_code != 0
+    assert has_token(None) is False
+
+
+def test_auth_add_stdin_and_env_mutually_exclusive(
+    fake_keyring: None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("OVERLEAF_MCP_CONFIG", str(tmp_path / "config.toml"))
+    monkeypatch.setenv("X", "y")
+
+    result = CliRunner().invoke(
+        cli,
+        ["auth", "add", "--token-stdin", "--token-from-env", "X"],
+        input="\n",
+    )
+    assert result.exit_code != 0
+    assert "at most one" in result.output
+
+
+def test_auth_add_token_stdin_rejects_empty(
+    fake_keyring: None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Whitespace-only stdin is just as bad as an empty prompt."""
+    monkeypatch.setenv("OVERLEAF_MCP_CONFIG", str(tmp_path / "config.toml"))
+    result = CliRunner().invoke(
+        cli, ["auth", "add", "--token-stdin"], input="   \n"
+    )
+    assert result.exit_code != 0
+    assert has_token(None) is False
+
+
 def test_auth_remove_when_present(
     fake_keyring: None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

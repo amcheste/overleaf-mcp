@@ -6,6 +6,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.1.2] - Patch release
+
+### Added
+
+- **Non-interactive `init`.**  `overleaf-mcp init` now accepts `--alias`, `--project-id`, `--display-name`, and `--force` flags so the command is fully scriptable.  Passing `--alias` engages non-interactive mode end-to-end: missing required flags fail fast (no silent stdin reads), `--project-id` becomes required, and an existing alias requires `--force` to overwrite (no confirm prompt).  The bare interactive form (`overleaf-mcp init`) is unchanged.
+- **Non-interactive `auth add`.**  Two new options for token entry without TTY prompts:
+  - `--token-stdin` reads the token from stdin (`printf '%s' "$TOK" | overleaf-mcp auth add ...`).  Recommended for scripts — keeps the token off the process command line.
+  - `--token-from-env VAR_NAME` reads the token from a named environment variable.  Empty or unset variables fail fast.
+  - The two options are mutually exclusive; passing both is a usage error.
+  - There is intentionally no `--token VALUE` flag because values on the command line leak via `ps`.
+
+### Notes
+
+- These additions are purely additive — existing interactive flows and tests keep working unchanged (26 pre-existing CLI tests still pass; 15 new tests cover the flag paths).
+
 ## [0.1.1] - Patch release
 
 ### Fixed
