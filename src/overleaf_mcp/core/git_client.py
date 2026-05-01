@@ -82,6 +82,11 @@ class GitClient:
     def read_file(self, path: Path) -> str:
         return path.read_text()
 
+    def delete_file(self, path: Path) -> None:
+        """Remove a file from the working tree. The deletion gets staged on
+        the next commit() (which runs `add -A`)."""
+        path.unlink()
+
     def list_files(self, extension: str | None = None) -> list[Path]:
         result = self._run(["ls-files"])
         paths = [self.repo_path / line for line in result.stdout.splitlines() if line]
@@ -89,3 +94,10 @@ class GitClient:
             ext = extension if extension.startswith(".") else f".{extension}"
             paths = [p for p in paths if p.suffix == ext]
         return paths
+
+    def last_commit_summary(self) -> str:
+        """Short human-readable description of HEAD: short SHA, author,
+        relative date, subject line."""
+        return self._run(
+            ["log", "-1", "--pretty=%h %an <%ae> (%ad)%n%s", "--date=relative"]
+        ).stdout.strip()

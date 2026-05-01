@@ -3,6 +3,7 @@ import shutil
 import click
 
 from overleaf_mcp.cli.auth import auth
+from overleaf_mcp.cli.project import project
 from overleaf_mcp.core.config import ProjectConfig, get_config_path, load_config, save_config
 from overleaf_mcp.core.credentials import resolve_token
 from overleaf_mcp.core.errors import TokenNotFoundError
@@ -17,6 +18,7 @@ def cli() -> None:
 
 
 cli.add_command(auth)
+cli.add_command(project)
 
 
 @cli.command()
@@ -175,8 +177,7 @@ def doctor() -> None:
             click.echo(f"  Clone: ok ({repo_path})")
         else:
             click.echo(
-                f"  Clone: missing — run 'git clone "
-                f"https://git.overleaf.com/{cfg.project_id} {repo_path}'"
+                f"  Clone: missing — run 'overleaf-mcp project clone {alias}'"
             )
 
     if failures:
