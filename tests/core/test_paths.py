@@ -24,6 +24,20 @@ def test_absolute_path_rejected(tmp_path: Path) -> None:
         validate_path(tmp_path, "/etc/passwd")
 
 
+def test_windows_absolute_path_rejected_on_any_os(tmp_path: Path) -> None:
+    """Windows-style absolute paths must be rejected even on POSIX runners.
+
+    Regression test for the Windows CI failure: Path.is_absolute() is
+    platform-specific, so 'C:\\evil' is not absolute on POSIX and the
+    early-reject didn't fire — defense-in-depth caught it later as a
+    path-escape, but with the wrong error code path. The fix uses
+    PurePosixPath OR PureWindowsPath to catch both formats everywhere."""
+    with pytest.raises(PathEscapeError, match="absolute"):
+        validate_path(tmp_path, r"C:\Windows\System32\config")
+    with pytest.raises(PathEscapeError, match="absolute"):
+        validate_path(tmp_path, r"\\server\share\file.tex")
+
+
 def test_dotdot_stays_inside(tmp_path: Path) -> None:
     (tmp_path / "a").mkdir()
     (tmp_path / "b.tex").touch()
