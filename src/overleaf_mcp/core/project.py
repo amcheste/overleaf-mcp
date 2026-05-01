@@ -1,9 +1,12 @@
 import os
 import subprocess
 import tempfile
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 from overleaf_mcp.core.config import ProjectConfig
+from overleaf_mcp.core.errors import GitOperationError
 from overleaf_mcp.core.git_client import GitClient
 
 
@@ -70,64 +73,79 @@ def _git_config(key: str) -> str:
     return value
 
 
+@contextmanager
+def authenticated_git_env(token: str) -> Iterator[dict[str, str]]:
+    """Yield an env dict that lets a subprocess git invocation authenticate
+    against Overleaf using ``token``, without putting it on argv or disk.
+
+    A throwaway shell helper script is written to a tempfile (chmod 700)
+    and pointed at via GIT_ASKPASS; the script reads GIT_USERNAME and
+    GIT_PASSWORD from the env. The script and the env vars live only for
+    the duration of the with-block — the tempfile is unlinked on exit
+    and the env dict is local to the caller's subprocess call.
+    """
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".sh", delete=False, encoding="utf-8"
+    ) as f:
+        f.write(_ASKPASS_SCRIPT)
+        script_path = Path(f.name)
+    try:
+        script_path.chmod(0o700)
+        env = os.environ.copy()
+        env["GIT_ASKPASS"] = str(script_path)
+        env["GIT_USERNAME"] = "git"
+        env["GIT_PASSWORD"] = token
+        env["GIT_TERMINAL_PROMPT"] = "0"
+        yield env
+    finally:
+        script_path.unlink(missing_ok=True)
+
 
 def probe_remote(project_id: str, token: str, timeout: float = 10.0) -> bool:
     """Check whether a token can reach an Overleaf project's git remote.
 
     Uses 'git ls-remote' which reads refs without cloning. Returns True on
     success, False on any failure (auth, network, timeout). Never raises.
-
-    The token is passed via GIT_USERNAME / GIT_PASSWORD env vars and read
-    by a temporary GIT_ASKPASS helper script — the token never appears on
-    the subprocess command line or on disk.
     """
     url = f"https://git.overleaf.com/{project_id}"
-
-    script_path = None
     try:
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".sh", delete=False, encoding="utf-8"
-        ) as f:
-            f.write(_ASKPASS_SCRIPT)
-            script_path = Path(f.name)
-        script_path.chmod(0o700)
-        env = os.environ.copy()
-        env["GIT_ASKPASS"] = str(script_path)
-        env["GIT_USERNAME"] = "git"
-        env["GIT_PASSWORD"] = token
-        env["GIT_TERMINAL_PROMPT"] = "0"
-        subprocess.run(
-            ["git", "ls-remote", url],
-            check=True,
-            env=env,
-            capture_output=True,
-            timeout=10.0,
-        )
+        with authenticated_git_env(token) as env:
+            subprocess.run(
+                ["git", "ls-remote", url],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                env=env,
+            )
         return True
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
         return False
-    finally:
-        if script_path is not None:
-            script_path.unlink(missing_ok=True)
 
+
+def clone_with_token(
+    project_id: str, token: str, dest: Path, timeout: float = 60.0
+) -> None:
+    """Clone an Overleaf project into ``dest`` with token authentication.
+
+    Same askpass plumbing as probe_remote — the token never appears on the
+    subprocess command line or in the cloned repo's git config. Parents of
+    ``dest`` are created as needed. Raises GitOperationError on failure;
+    the caller decides how to surface that to the user.
+    """
+    url = f"https://git.overleaf.com/{project_id}"
+    dest.parent.mkdir(parents=True, exist_ok=True)
     try:
-        script_path.chmod(0o700)
-        env = os.environ.copy()
-        env["GIT_ASKPASS"] = str(script_path)
-        env["GIT_USERNAME"] = "git"
-        env["GIT_PASSWORD"] = token
-        env["GIT_TERMINAL_PROMPT"] = "0"
-        subprocess.run(
-            ["git", "ls-remote", url],
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            env=env,
-        )
-        return True
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
-        return False
-    finally:
-        script_path.unlink(missing_ok=True)
-
+        with authenticated_git_env(token) as env:
+            subprocess.run(
+                ["git", "clone", url, str(dest)],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                env=env,
+            )
+    except subprocess.CalledProcessError as e:
+        raise GitOperationError(f"git clone failed: {e.stderr.strip()}") from e
+    except subprocess.TimeoutExpired as e:
+        raise GitOperationError(f"git clone timed out after {timeout}s") from e

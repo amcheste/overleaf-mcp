@@ -7,15 +7,31 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
-from overleaf_mcp.tools import edit_file, list_files, list_projects, read_file, sync
+from overleaf_mcp.tools import (
+    create_file,
+    delete_file,
+    edit_file,
+    get_section_content,
+    get_sections,
+    list_files,
+    list_projects,
+    project_status,
+    read_file,
+    sync,
+)
 
 
 _TOOLS = [
     (list_projects.TOOL_DEFINITION, list_projects.handle),
     (list_files.TOOL_DEFINITION, list_files.handle),
     (read_file.TOOL_DEFINITION, read_file.handle),
+    (get_sections.TOOL_DEFINITION, get_sections.handle),
+    (get_section_content.TOOL_DEFINITION, get_section_content.handle),
     (edit_file.TOOL_DEFINITION, edit_file.handle),
+    (create_file.TOOL_DEFINITION, create_file.handle),
+    (delete_file.TOOL_DEFINITION, delete_file.handle),
     (sync.TOOL_DEFINITION, sync.handle),
+    (project_status.TOOL_DEFINITION, project_status.handle),
 ]
 
 
