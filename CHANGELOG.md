@@ -6,6 +6,29 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Planned for v0.3
+
+- HTTP/SSE transport for remote / multi-client setups (enables claude.ai web)
+
+## [0.2.0] - Tool surface completion
+
+### Added
+
+- **`get_sections` tool.** Lists every LaTeX section in a `.tex` file with level, line range, and a markdown-style indent so the structure is scannable in Claude's response. Use this before `get_section_content` to discover what's available.
+- **`get_section_content` tool.** Returns the body of a named section. Errors loudly when the title isn't found (lists available titles) or matches multiple sections (forces disambiguation rather than silently picking one).
+- **`create_file` tool.** Distinct from `edit_file`. Errors with `FileExistsError` if the target already exists, forcing the caller to use `edit_file` for overwrites. Same `pull → validate → write → commit → push` flow.
+- **`delete_file` tool.** Pulls latest, removes the file, commits as the system git author, pushes back. Errors if the file doesn't exist (no silent no-ops).
+- **`project_status` tool.** One-shot summary: alias + display name, tracked file count, working-tree dirty state, and the last commit (short SHA, author, relative date, subject). Useful for orientation before starting work or for debugging stale-clone situations.
+- **`overleaf-mcp project clone <alias>` CLI subcommand.** Replaces the manual `git clone https://git:TOKEN@...` step in setup. Uses the same askpass token-injection as `probe_remote` so the token never lands on the subprocess command line or in the cloned repo's git config. `--force` removes a stale clone and re-clones from scratch. `doctor` now points users at this command instead of suggesting a raw `git clone`.
+
+### Changed
+
+- **`authenticated_git_env` context manager extracted.** The askpass-tempfile pattern previously inlined in `probe_remote` is now a reusable context manager in `core/project.py`. `probe_remote`, the new `clone_with_token` helper, and any future token-authenticated git invocation share the same single implementation. No public API change.
+
+### Internal
+
+- New `GitClient.delete_file(path)` and `GitClient.last_commit_summary()` primitives back the new `delete_file` and `project_status` tools.
+
 ## [0.1.2] - Patch release
 
 ### Added

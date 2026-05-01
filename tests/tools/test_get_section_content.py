@@ -69,6 +69,22 @@ def test_missing_title_lists_available(
     assert "Method" in msg
 
 
+def test_unknown_alias_rejected(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    configs = {"hicss": ProjectConfig(alias="hicss", project_id="abc")}
+    gc = _fake_gc(tmp_path, "")
+    _patch(monkeypatch, configs, gc)
+
+    with pytest.raises(KeyError, match="unknown project alias"):
+        asyncio.run(
+            get_section_content.handle(
+                {"file_path": "main.tex", "title": "X", "project": "nope"}
+            )
+        )
+    gc.read_file.assert_not_called()
+
+
 def test_ambiguous_title_errors_with_locations(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
