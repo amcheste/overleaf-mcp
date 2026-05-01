@@ -169,3 +169,32 @@ def test_list_files_filters_by_extension(
     gc.commit("add", "T <t@t.test>")
     assert {p.name for p in gc.list_files(extension=".tex")} == {"a.tex"}
     assert {p.name for p in gc.list_files(extension="tex")} == {"a.tex"}
+
+
+def test_delete_file_followed_by_commit_removes_from_tracking(
+    tmp_repo_from_remote: tuple[Path, GitClient],
+) -> None:
+    repo, gc = tmp_repo_from_remote
+    gc.write_file(repo / "doomed.tex", "x")
+    gc.commit("add", "T <t@t.test>")
+    assert "doomed.tex" in {p.name for p in gc.list_files()}
+
+    gc.delete_file(repo / "doomed.tex")
+    assert not (repo / "doomed.tex").exists()
+    gc.commit("remove", "T <t@t.test>")
+    assert "doomed.tex" not in {p.name for p in gc.list_files()}
+
+
+def test_last_commit_summary_includes_sha_author_and_subject(
+    tmp_repo_from_remote: tuple[Path, GitClient],
+) -> None:
+    repo, gc = tmp_repo_from_remote
+    gc.write_file(repo / "x.tex", "x")
+    gc.commit("add x.tex with care", "Alice <alice@example.com>")
+    summary = gc.last_commit_summary()
+    assert "Alice" in summary
+    assert "alice@example.com" in summary
+    assert "add x.tex with care" in summary
+    # Short SHA is 7+ hex chars at start of first line
+    first_line = summary.splitlines()[0]
+    assert len(first_line.split()[0]) >= 7
