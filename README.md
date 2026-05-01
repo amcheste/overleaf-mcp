@@ -123,6 +123,35 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
 
 Fully quit and relaunch Claude Desktop (cmd-Q on macOS — closing the window isn't enough). In a new conversation, ask Claude something like *"use overleaf list_projects"* to verify.
 
+## Remote deployment (HTTP, for claude.ai web)
+
+If you want to use the server with **claude.ai web** or any other MCP client that can't spawn local subprocesses, run it as an HTTP server. Same tools, different transport.
+
+**Required:** a strong bearer token. The server refuses to start without `OVERLEAF_MCP_AUTH_TOKEN` set, because it would otherwise expose every Overleaf token in your keychain to anyone who can reach the bound port.
+
+```sh
+# Generate a token
+export OVERLEAF_MCP_AUTH_TOKEN="$(openssl rand -hex 32)"
+
+# Run on loopback (default; safe for local-only access)
+overleaf-mcp serve-http
+
+# Or bind public + put a TLS-terminating reverse proxy in front
+overleaf-mcp serve-http --host 0.0.0.0 --port 8080
+```
+
+Endpoints:
+- **`POST /mcp/`** — the MCP endpoint. Requires `Authorization: Bearer <token>`. Trailing slash matters.
+- **`GET /healthz`** — monitoring. Returns `{"status": "ok"}` with no auth.
+
+In claude.ai's connector settings, point at `https://your-host/mcp/` and set the bearer token. claude.ai handles the rest.
+
+**Security checklist before exposing publicly:**
+- TLS via reverse proxy (nginx, caddy, cloudflare). The server speaks plain HTTP.
+- Strong token. `openssl rand -hex 32` is good; anything shorter is not.
+- Rotate the token whenever it leaks. Update `OVERLEAF_MCP_AUTH_TOKEN` and restart.
+- Consider IP allowlisting at the proxy if your access pattern is fixed.
+
 ## Tools
 
 | Tool | What it does |
@@ -130,8 +159,13 @@ Fully quit and relaunch Claude Desktop (cmd-Q on macOS — closing the window is
 | `list_projects` | Lists configured Overleaf project aliases |
 | `list_files` | Lists files tracked in the project's git clone (optional extension filter) |
 | `read_file` | Reads a file from the project |
+| `get_sections` | Lists LaTeX sections in a `.tex` file with level + line range |
+| `get_section_content` | Returns the body of a named section |
 | `edit_file` | Pulls latest, overwrites a file, commits, pushes to Overleaf |
+| `create_file` | Creates a new file (errors if it already exists) |
+| `delete_file` | Deletes a file from the project |
 | `sync` | Pulls latest from Overleaf into the local clone |
+| `project_status` | File count, dirty state, last-commit summary |
 
 ## GitHub mirror (optional)
 
