@@ -82,3 +82,41 @@ jobs:
           /tmp/smoke-venv/bin/overleaf-mcp auth add --help
           /tmp/smoke-venv/bin/overleaf-mcp auth remove --help
           /tmp/smoke-venv/bin/overleaf-mcp auth list --help
+
+  # Exercises the full edit_file flow against a real Overleaf project.
+  # Gated on (a) running in the canonical repo (forks don't have the
+  # secrets) and (b) the secrets actually being present (skips cleanly
+  # if someone deletes them). Concurrency-grouped so two CI runs don't
+  # race each other against the shared remote — Overleaf's git remote
+  # is a single branch, so concurrent ff-only pulls would conflict.
+  #
+  # Intentionally NOT in the required-status-checks list. Overleaf API
+  # outages would gate every PR. Promote to required after a few weeks
+  # of clean signal.
+  real-overleaf:
+    name: Real Overleaf round-trip
+    needs: test
+    if: ${{ github.repository == 'amcheste/overleaf-mcp' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: overleaf-real-ci
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Sync dependencies
+        run: uv sync --extra dev
+
+      - name: Real Overleaf round-trip
+        env:
+          OVERLEAF_TEST_PROJECT_ID: ${{ secrets.OVERLEAF_TEST_PROJECT_ID }}
+          OVERLEAF_TEST_TOKEN: ${{ secrets.OVERLEAF_TEST_TOKEN }}
+        run: uv run pytest tests/test_real_overleaf.py -v
