@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to report a bug. Before filing, please
-        check that this isn't a security issue — see [SECURITY.md](https://github.com/amcheste/overleaf-mcp/blob/main/SECURITY.md)
+        check that this isn't a security issue. See [SECURITY.md](https://github.com/amcheste/overleaf-mcp/blob/main/SECURITY.md)
         for the private disclosure flow if it is.
   - type: input
     id: version

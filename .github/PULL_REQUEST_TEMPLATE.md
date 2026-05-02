@@ -7,7 +7,7 @@ Thanks for the contribution! A few things that make review faster:
   locally with `uv run pytest`.
 - Coverage stays at 100% on `src/overleaf_mcp/` (excluding the
   transports). If your PR drops it, add a test.
-- Conventional commit messages help — `feat(tools):`, `fix(core):`,
+- Conventional commit messages help. `feat(tools):`, `fix(core):`,
   `docs:`, `test:`, `chore:` prefixes are the norm here.
 -->
 

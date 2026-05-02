@@ -3,7 +3,7 @@
 ## Supported versions
 
 Security fixes target the latest minor release. Older 0.x lines are not
-backported — if you're on an old version, upgrade first.
+backported. If you're on an old version, upgrade first.
 
 | Version line | Supported |
 |---|---|
@@ -19,7 +19,7 @@ Use GitHub's private vulnerability reporting:
 
 1. Go to the [Security tab](https://github.com/amcheste/overleaf-mcp/security)
 2. Click **Report a vulnerability**
-3. Fill in details — what you found, how to reproduce, what you think the impact is
+3. Fill in details: what you found, how to reproduce, what you think the impact is
 
 Or email `amcheste+security@gmail.com` if you'd rather not use GitHub.
 
@@ -27,7 +27,7 @@ You should hear back within a few days. I'll work with you on a fix and a
 coordinated disclosure timeline. Critical issues that affect deployed
 users will get a patched release as fast as I can verify the fix.
 
-## Threat model — what this server protects against, and what it doesn't
+## Threat model: what this server protects against, and what it doesn't
 
 The server is designed for **a single researcher running it locally or on
 a personal VPS**. The threat model is shaped by that.
@@ -43,7 +43,7 @@ a personal VPS**. The threat model is shaped by that.
   `ps`-style process snapshots don't reveal the token.
 - **Path-escape attempts are rejected up-front.** `validate_path` blocks
   absolute paths (POSIX *and* Windows formats), `../` escapes, and
-  symlinks pointing outside the repo root. Defense-in-depth — every
+  symlinks pointing outside the repo root. Defense-in-depth: every
   write tool re-validates regardless of caller.
 - **HTTP transport requires bearer auth.** `serve-http` refuses to start
   without `OVERLEAF_MCP_AUTH_TOKEN`. Token check uses
@@ -84,6 +84,6 @@ Security reports in scope:
 - Anything that makes the server a credential-stealing vector
 
 Out of scope (file a regular issue instead):
-- "What if the user's machine is already compromised" — yes, it'd be bad
-- Bugs in upstream dependencies — report them upstream
-- Feature requests for hardened multi-tenant operation — different design
+- "What if the user's machine is already compromised" (yes, it'd be bad)
+- Bugs in upstream dependencies (report them upstream)
+- Feature requests for hardened multi-tenant operation (different design)

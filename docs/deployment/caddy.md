@@ -37,7 +37,7 @@ overleaf-mcp auth add --project myproject
 openssl rand -hex 32
 ```
 
-Copy the value — you'll use it both as the server's auth token and as
+Copy the value. You'll use it both as the server's auth token and as
 the credential clients send.
 
 ## 4. Run the server as a systemd service
@@ -62,7 +62,7 @@ RestartSec=5
 WantedBy=multi-user.target
 ```
 
-Bind to `127.0.0.1` (loopback) — Caddy will reverse-proxy to it. The
+Bind to `127.0.0.1` (loopback). Caddy will reverse-proxy to it. The
 public internet never talks to the Python server directly.
 
 ```sh
