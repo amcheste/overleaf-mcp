@@ -14,6 +14,8 @@
   <a href="https://pypi.org/project/overleaf-mcp-server/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/overleaf-mcp-server.svg"></a>
   <a href="https://github.com/amcheste/overleaf-mcp/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/overleaf-mcp-server.svg"></a>
   <a href="https://github.com/amcheste/overleaf-mcp/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/amcheste/overleaf-mcp/actions/workflows/tests.yml/badge.svg?branch=develop"></a>
+  <a href="https://codecov.io/gh/amcheste/overleaf-mcp"><img alt="Coverage" src="https://codecov.io/gh/amcheste/overleaf-mcp/branch/develop/graph/badge.svg"></a>
+  <a href="https://pepy.tech/project/overleaf-mcp-server"><img alt="Downloads" src="https://static.pepy.tech/badge/overleaf-mcp-server/month"></a>
 </p>
 
 ---
@@ -166,6 +168,29 @@ In claude.ai's connector settings, point at `https://your-host/mcp/` and set the
 | `delete_file` | Deletes a file from the project |
 | `sync` | Pulls latest from Overleaf into the local clone |
 | `project_status` | File count, dirty state, last-commit summary |
+
+For concrete usage prompts and recipes, see [EXAMPLES.md](EXAMPLES.md).
+
+## Troubleshooting
+
+When something doesn't work, run `overleaf-mcp doctor` first — it
+diagnoses most setup problems and prints the exact command to fix them.
+Common cases beyond that:
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `doctor` says **Token: FAIL** | No token registered for that alias | `overleaf-mcp auth add --project <alias>` |
+| `doctor` says **Remote: FAIL** | Wrong/revoked Overleaf token, or network blocked | Re-issue the Overleaf token (Account Settings → Git Integration), then `overleaf-mcp auth add --project <alias>` again |
+| `doctor` says **Clone: missing** | Project not cloned yet | `overleaf-mcp project clone <alias>` |
+| `doctor` says **Git author: FAIL** | System git config missing user.name / user.email | `git config --global user.name "Your Name"` and `git config --global user.email "you@example.com"` |
+| `serve-http` exits immediately with `OVERLEAF_MCP_AUTH_TOKEN is not set` | The HTTP transport refuses to start without auth | `export OVERLEAF_MCP_AUTH_TOKEN="$(openssl rand -hex 32)"` then re-run |
+| Claude Desktop sees no tools | Either config file isn't valid JSON, or Claude Desktop wasn't fully quit (cmd-Q) | Validate JSON, then cmd-Q (not just close window) and reopen |
+| claude.ai web returns 401 | Wrong bearer token, or wrong scheme (`Basic` instead of `Bearer`), or missing trailing slash on `/mcp/` | Check all three — the URL must be `https://your-host/mcp/` with a trailing slash |
+| `edit_file` fails with `git push --ff-only` rejected | Someone (or the Overleaf web UI) edited the project after your last pull | The next `edit_file` will pull first and try again. If it persists, the local clone has diverged — `cd ~/.cache/overleaf-mcp/<alias> && git status` to inspect |
+
+For HTTP-transport deployment beyond local use, see the recipes under
+[`docs/deployment/`](docs/deployment/) — Caddy, nginx, and Fly.io
+walkthroughs.
 
 ## GitHub mirror (optional)
 

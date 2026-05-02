@@ -1,0 +1,21 @@
+name: Question
+description: Ask a usage or design question
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        General questions are welcome here. For setup-specific issues,
+        please run `overleaf-mcp doctor` first and include the output —
+        it answers most "why doesn't this work" questions on its own.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context (optional)
+      description: What you're trying to accomplish, what you've tried, what you've already read.

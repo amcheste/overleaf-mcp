@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: "overleaf-mcp-server"
+message: "If you use this software in academic work, please cite it as below."
+type: software
+authors:
+  - family-names: "Chester"
+    given-names: "Alan"
+    email: "amcheste@gmail.com"
+abstract: >-
+  A minimal, auditable Model Context Protocol (MCP) server for editing
+  Overleaf projects from Claude. Single-user, single-process, stdio or
+  HTTP transport, OS-keychain credential storage. Designed for the
+  academic-writing workflow where Claude assists with structural review,
+  prose editing, and cross-section consistency on long-form LaTeX work.
+license: MIT
+repository-code: "https://github.com/amcheste/overleaf-mcp"
+url: "https://github.com/amcheste/overleaf-mcp"
+keywords:
+  - "model-context-protocol"
+  - "mcp-server"
+  - "overleaf"
+  - "latex"
+  - "claude"
+  - "academic-writing"
