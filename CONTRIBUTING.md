@@ -29,6 +29,27 @@ uv run pytest tests/core/test_paths.py::test_absolute_path_rejected -v
 
 You'll need Python 3.11 or newer and [`uv`](https://github.com/astral-sh/uv).
 
+### Previewing the docs site locally
+
+The documentation site (https://amcheste.github.io/overleaf-mcp/) is
+built with MkDocs Material. To work on it locally:
+
+```sh
+uv sync --extra docs
+uv run mkdocs serve
+# Open http://127.0.0.1:8000 — auto-reloads on changes
+```
+
+Build the static site (what CI deploys):
+
+```sh
+uv run mkdocs build --strict
+# Output goes to site/ which is gitignored
+```
+
+The `--strict` flag catches broken links and missing files. CI uses the
+same flag, so if it builds locally it'll build in CI.
+
 ## Branch model
 
 - **`develop`** is the integration branch. PRs target `develop`.
@@ -84,14 +105,15 @@ Before opening a PR:
 
 ## Architecture overview
 
-See [CLAUDE.md](CLAUDE.md) for the in-repo design notes — what each
-subpackage owns, why git is the write API, why credentials never touch
-disk, why the server is single-process / single-user by design. That
-file is the one-stop overview for understanding the codebase.
+See [CLAUDE.md](https://github.com/amcheste/overleaf-mcp/blob/main/CLAUDE.md)
+for the in-repo design notes — what each subpackage owns, why git is the
+write API, why credentials never touch disk, why the server is
+single-process / single-user by design. That file is the one-stop
+overview for understanding the codebase.
 
 ## Where to ask questions
 
 - **Bug?** [File an issue](https://github.com/amcheste/overleaf-mcp/issues/new?template=bug_report.yml)
 - **Idea?** [File a feature request](https://github.com/amcheste/overleaf-mcp/issues/new?template=feature_request.yml)
 - **General question?** [GitHub Discussions](https://github.com/amcheste/overleaf-mcp/discussions)
-- **Security issue?** Please report privately — see [SECURITY.md](SECURITY.md)
+- **Security issue?** Please report privately — see [SECURITY.md](https://github.com/amcheste/overleaf-mcp/blob/main/SECURITY.md)
