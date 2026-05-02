@@ -20,7 +20,7 @@ body:
     id: proposed
     attributes:
       label: Proposed shape (optional)
-      description: If you've thought about what this would look like — tool name, inputs, expected output — share it. Sketches are fine.
+      description: If you've thought about what this would look like (tool name, inputs, expected output), share it. Sketches are fine.
   - type: textarea
     id: alternatives
     attributes:

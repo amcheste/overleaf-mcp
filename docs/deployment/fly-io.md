@@ -1,7 +1,7 @@
 # Fly.io deployment
 
 Fly.io gives you a single-command deploy with TLS handled automatically.
-Cheapest tier (`shared-cpu-1x`, 256 MB) is fine — the server is
+Cheapest tier (`shared-cpu-1x`, 256 MB) is fine. The server is
 single-process and doesn't hold much in memory.
 
 ## 1. Prep
@@ -16,14 +16,14 @@ flyctl auth signup     # or 'auth login' if you have an account
 
 ## 2. Create a Dockerfile
 
-The MCP server is pure Python — a slim base image works. Drop this in
+The MCP server is pure Python; a slim base image works. Drop this in
 the project root:
 
 ```dockerfile
 # Dockerfile
 FROM python:3.13-slim
 
-# Git is required at runtime — the server shells out to it for every
+# Git is required at runtime, since the server shells out to it for every
 # pull/push against git.overleaf.com.
 RUN apt-get update && apt-get install -y --no-install-recommends git \
     && rm -rf /var/lib/apt/lists/*
@@ -36,7 +36,7 @@ RUN useradd -m -u 1000 app
 USER app
 WORKDIR /home/app
 
-# Bind on all interfaces — Fly's edge handles TLS and forwards to here.
+# Bind on all interfaces. Fly's edge handles TLS and forwards to here.
 EXPOSE 8080
 CMD ["overleaf-mcp", "serve-http", "--host", "0.0.0.0", "--port", "8080"]
 ```
@@ -53,7 +53,7 @@ defaults; we'll edit `fly.toml` next.
 ## 4. Configure `fly.toml`
 
 ```toml
-# fly.toml — keep flyctl's generated app/region values, adjust the
+# fly.toml: keep flyctl's generated app/region values, adjust the
 # service block to look like this:
 
 [http_service]
@@ -81,7 +81,7 @@ server's alive without a credential.
 flyctl secrets set OVERLEAF_MCP_AUTH_TOKEN="$(openssl rand -hex 32)"
 ```
 
-Save the token value somewhere safe — you'll need it for claude.ai
+Save the token value somewhere safe. You'll need it for claude.ai
 later. Fly secrets are encrypted at rest and injected as env vars at
 runtime.
 
@@ -118,7 +118,7 @@ Auth: Bearer, value = the secret you set in step 5
   # Bump the pip install version in Dockerfile, then:
   flyctl deploy
   ```
-  (Or pin to a specific version — `pip install overleaf-mcp-server==X.Y.Z` —
+  (Or pin to a specific version, `pip install overleaf-mcp-server==X.Y.Z`,
   for reproducibility.)
 - **Rotating the auth token:**
   ```sh
@@ -129,11 +129,11 @@ Auth: Bearer, value = the secret you set in step 5
 - **Logs:** `flyctl logs` for live tail, `flyctl logs --no-tail` for
   recent.
 - **Project configuration is per-deploy.** This deployment doesn't have
-  the OS keychain available — you can't run `overleaf-mcp init` /
+  the OS keychain available, so you can't run `overleaf-mcp init` /
   `overleaf-mcp auth add` interactively against a remote machine.
   Instead, set per-project tokens via additional Fly secrets like
   `OVERLEAF_TOKEN_MYPROJECT` (the env-var fallback the server already
   honors) and bake the config TOML into the image. For most users this
-  is more friction than it's worth — Fly is a good fit if you want
+  is more friction than it's worth. Fly is a good fit if you want
   *one* project served remotely; for many projects, a VPS with the
   keychain is easier.

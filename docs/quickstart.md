@@ -89,11 +89,11 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
 }
 ```
 
-**Fully quit** and relaunch Claude Desktop (`cmd-Q` on macOS — closing the window isn't enough). In a new conversation, ask Claude something like *"use overleaf list_projects"* to verify.
+**Fully quit** and relaunch Claude Desktop (`cmd-Q` on macOS, since closing the window isn't enough). In a new conversation, ask Claude something like *"use overleaf list_projects"* to verify.
 
 ## Remote setup (claude.ai web)
 
-For claude.ai web — anything that can't spawn local subprocesses.
+For claude.ai web, or anything else that can't spawn local subprocesses.
 
 ### 1. Generate a strong bearer token
 
