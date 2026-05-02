@@ -63,6 +63,12 @@ target-version = "py311"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+# Default run skips the acceptance suite — it's slow and needs secrets.
+# CI opts in via `pytest tests/acceptance/` or `pytest -m acceptance`.
+addopts = "-m 'not acceptance'"
+markers = [
+    "acceptance: end-to-end tests against a real Overleaf project (require OVERLEAF_TEST_* env vars)",
+]
 
 [tool.coverage.run]
 source = ["src/overleaf_mcp"]

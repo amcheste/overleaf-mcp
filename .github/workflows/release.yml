@@ -9,8 +9,41 @@ permissions:
   contents: read
 
 jobs:
+  # Acceptance gate: end-to-end suite against a real Overleaf project.
+  # If anything here fails, the release does NOT publish — the build
+  # and publish jobs both depend on this passing. Same concurrency
+  # group as the PR-level real-overleaf job so two CI runs never fight
+  # over the shared remote.
+  acceptance:
+    name: Acceptance tests against real Overleaf
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'amcheste/overleaf-mcp' }}
+    concurrency:
+      group: overleaf-real-ci
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Sync dependencies
+        run: uv sync --extra dev
+
+      - name: Run acceptance suite
+        env:
+          OVERLEAF_TEST_PROJECT_ID: ${{ secrets.OVERLEAF_TEST_PROJECT_ID }}
+          OVERLEAF_TEST_TOKEN: ${{ secrets.OVERLEAF_TEST_TOKEN }}
+        run: uv run pytest -m acceptance -v
+
   build:
     name: Build distributions
+    needs: acceptance
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
