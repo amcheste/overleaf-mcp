@@ -6,8 +6,8 @@ body:
     attributes:
       value: |
         General questions are welcome here. For setup-specific issues,
-        please run `overleaf-mcp doctor` first and include the output —
-        it answers most "why doesn't this work" questions on its own.
+        please run `overleaf-mcp doctor` first and include the output.
+        It answers most "why doesn't this work" questions on its own.
   - type: textarea
     id: question
     attributes:

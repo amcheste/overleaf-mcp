@@ -1,6 +1,6 @@
 # Run `pre-commit install` after cloning to enable. Hooks then run on
-# every commit and reproduce what CI checks — catches lint and format
-# drift before it leaves your machine.
+# every commit and reproduce what CI checks, so lint and format drift
+# gets caught before it leaves your machine.
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit

@@ -1,7 +1,7 @@
 # nginx deployment
 
 For users on existing nginx infrastructure. If you're starting from
-scratch, [Caddy](caddy.md) is simpler — auto-TLS in two lines of config.
+scratch, [Caddy](caddy.md) is simpler: auto-TLS in two lines of config.
 nginx is the right pick when you already have an nginx server you want
 this to live alongside.
 
@@ -32,11 +32,11 @@ server {
     listen 443 ssl http2;
     server_name overleaf-mcp.yourdomain.com;
 
-    # Certbot will populate these — see step 3.
+    # Certbot will populate these (see step 3).
     ssl_certificate     /etc/letsencrypt/live/overleaf-mcp.yourdomain.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/overleaf-mcp.yourdomain.com/privkey.pem;
 
-    # Recommended baseline — see Mozilla SSL Configurator for current values
+    # Recommended baseline (see Mozilla SSL Configurator for current values)
     ssl_protocols       TLSv1.2 TLSv1.3;
     ssl_ciphers         HIGH:!aNULL:!MD5;
 
@@ -59,7 +59,7 @@ server {
         proxy_read_timeout 300s;
         proxy_send_timeout 300s;
 
-        # Don't buffer responses — the MCP transport streams.
+        # Don't buffer responses. The MCP transport streams.
         proxy_buffering off;
     }
 }
@@ -88,10 +88,10 @@ provisioned and sets up auto-renewal via a cron job / systemd timer.
 # Healthz, no auth required
 curl https://overleaf-mcp.yourdomain.com/healthz
 
-# /mcp/ without auth — expect 401
+# /mcp/ without auth: expect 401
 curl -i https://overleaf-mcp.yourdomain.com/mcp/
 
-# /mcp/ with auth — expect MCP response
+# /mcp/ with auth: expect MCP response
 curl -i -H "Authorization: Bearer YOUR_TOKEN" https://overleaf-mcp.yourdomain.com/mcp/
 ```
 

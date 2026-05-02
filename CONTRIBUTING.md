@@ -1,7 +1,7 @@
 # Contributing
 
-Thanks for considering a contribution. This file is short on purpose —
-the project is small and the conventions are easy.
+Thanks for considering a contribution. This file is short on purpose,
+since the project is small and the conventions are easy.
 
 ## Quick start
 
@@ -42,7 +42,7 @@ built with MkDocs Material. To work on it locally:
 ```sh
 uv sync --extra docs
 uv run mkdocs serve
-# Open http://127.0.0.1:8000 — auto-reloads on changes
+# Open http://127.0.0.1:8000 (auto-reloads on changes)
 ```
 
 Build the static site (what CI deploys):
@@ -95,7 +95,7 @@ Before opening a PR:
       manually)
 
 Acceptance tests (`uv run pytest -m acceptance`) gate **releases**, not
-PRs — so you don't need them to run them on every PR. They run on
+PRs, so you don't need them to run them on every PR. They run on
 every `v*.*.*` tag push (blocking PyPI publish if any fail) and once
 nightly (opening an issue if anything breaks). See
 [`tests/acceptance/README.md`](https://github.com/amcheste/overleaf-mcp/blob/main/tests/acceptance/README.md)
@@ -112,13 +112,13 @@ for what's covered and how to add to the suite.
   might reasonably want to handle differently (`PathEscapeError`,
   `TokenNotFoundError`, `GitOperationError`).
 - **Error messages are UX.** Include the actionable next step when you
-  can — error messages are the first thing users read when something
+  can. Error messages are the first thing users read when something
   fails.
 
 ## Architecture overview
 
 See [CLAUDE.md](https://github.com/amcheste/overleaf-mcp/blob/main/CLAUDE.md)
-for the in-repo design notes — what each subpackage owns, why git is the
+for the in-repo design notes: what each subpackage owns, why git is the
 write API, why credentials never touch disk, why the server is
 single-process / single-user by design. That file is the one-stop
 overview for understanding the codebase.
@@ -128,4 +128,4 @@ overview for understanding the codebase.
 - **Bug?** [File an issue](https://github.com/amcheste/overleaf-mcp/issues/new?template=bug_report.yml)
 - **Idea?** [File a feature request](https://github.com/amcheste/overleaf-mcp/issues/new?template=feature_request.yml)
 - **General question?** [GitHub Discussions](https://github.com/amcheste/overleaf-mcp/discussions)
-- **Security issue?** Please report privately — see [SECURITY.md](https://github.com/amcheste/overleaf-mcp/blob/main/SECURITY.md)
+- **Security issue?** Please report privately. See [SECURITY.md](https://github.com/amcheste/overleaf-mcp/blob/main/SECURITY.md).

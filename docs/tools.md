@@ -16,8 +16,8 @@ Lists files tracked in the project's local git clone.
 
 **Inputs:**
 
-- `project` (optional) — project alias
-- `extension` (optional) — filter by extension, e.g. `tex` or `.tex`
+- `project` (optional): project alias
+- `extension` (optional): filter by extension, e.g. `tex` or `.tex`
 
 ### `read_file`
 
@@ -25,7 +25,7 @@ Reads a file from the project.
 
 **Inputs:**
 
-- `file_path` (required) — path relative to the project root
+- `file_path` (required): path relative to the project root
 - `project` (optional)
 
 ## Structure (LaTeX-aware)
@@ -48,7 +48,7 @@ Errors loudly when the title isn't found (lists available titles) or matches mul
 **Inputs:**
 
 - `file_path` (required)
-- `title` (required) — exact, case-sensitive
+- `title` (required): exact, case-sensitive
 - `project` (optional)
 
 ## Write
@@ -62,12 +62,12 @@ Pulls latest, overwrites a file, commits, pushes to Overleaf. Short-circuits wit
 **Inputs:**
 
 - `file_path` (required)
-- `content` (required) — new full contents
+- `content` (required): new full contents
 - `project` (optional)
 
 ### `create_file`
 
-Strict create. Errors with `FileExistsError` if the file already exists — use `edit_file` to overwrite. Distinct intent so Claude can't accidentally clobber existing work.
+Strict create. Errors with `FileExistsError` if the file already exists. Use `edit_file` to overwrite. Distinct intent so Claude can't accidentally clobber existing work.
 
 **Inputs:**
 
