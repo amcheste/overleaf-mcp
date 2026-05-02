@@ -16,6 +16,11 @@
   <a href="https://github.com/amcheste/overleaf-mcp/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/amcheste/overleaf-mcp/actions/workflows/tests.yml/badge.svg?branch=develop"></a>
   <a href="https://codecov.io/gh/amcheste/overleaf-mcp"><img alt="Coverage" src="https://codecov.io/gh/amcheste/overleaf-mcp/branch/develop/graph/badge.svg"></a>
   <a href="https://pepy.tech/project/overleaf-mcp-server"><img alt="Downloads" src="https://static.pepy.tech/badge/overleaf-mcp-server/month"></a>
+  <a href="https://amcheste.github.io/overleaf-mcp/"><img alt="Docs" src="https://img.shields.io/badge/docs-mkdocs--material-blue.svg"></a>
+</p>
+
+<p align="center">
+  <strong><a href="https://amcheste.github.io/overleaf-mcp/">📖 Full documentation →</a></strong>
 </p>
 
 ---
