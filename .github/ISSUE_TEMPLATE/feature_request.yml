@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest a new tool, CLI command, or capability
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing, skim the [CHANGELOG `[Unreleased]` section](https://github.com/amcheste/overleaf-mcp/blob/main/CHANGELOG.md) and
+        recent issues to see if this is already planned or discussed.
+        Some intentionally-out-of-scope ideas (multi-user hosting, branch
+        management) are listed in [README's "What it is not"](https://github.com/amcheste/overleaf-mcp#what-it-is-not).
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the situation that prompted the idea, not the implementation. "I have to do X manually every time I want Y" is more useful than "add a tool that does Z."
+    validations:
+      required: true
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed shape (optional)
+      description: If you've thought about what this would look like — tool name, inputs, expected output — share it. Sketches are fine.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Anything you're already doing as a workaround, or other tools that solve the same problem differently.
