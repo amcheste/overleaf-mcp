@@ -13,8 +13,14 @@ You need the same secrets the CI uses:
 export OVERLEAF_TEST_PROJECT_ID=<your-test-project-id>
 export OVERLEAF_TEST_TOKEN=<project-scoped-overleaf-token>
 
-uv run pytest tests/acceptance/ -v
+uv run pytest -m acceptance -v
 ```
+
+The default `uv run pytest` excludes acceptance tests via pyproject's
+`addopts = "-m 'not acceptance'"`. To opt in, use `-m acceptance` —
+that negates the default exclusion. (Targeting the directory
+directly via `pytest tests/acceptance/` doesn't override the addopts;
+use the marker.)
 
 Without the env vars, every test in the suite skips with a clear
 reason — safe to run accidentally.

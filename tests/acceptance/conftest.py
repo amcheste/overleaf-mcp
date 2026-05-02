@@ -93,8 +93,44 @@ def session_id() -> str:
     return f"{int(time.time())}-{uuid.uuid4().hex[:6]}"
 
 
+# The alias every acceptance test uses to refer to the test project.
+PROJECT_ALIAS = "acceptance"
+
+
 @pytest.fixture(scope="session")
-def work_clone(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, GitClient]:
+def _acceptance_env(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, GitClient]:
+    """Session-wide setup that wires the test project under the alias
+    ``acceptance`` so every tool handler resolves correctly:
+
+      - Writes a tmp config.toml with one project entry
+      - Points OVERLEAF_MCP_CONFIG at it
+      - Points OVERLEAF_MCP_CACHE at a tmp dir
+      - Clones the test project into ``<cache>/acceptance/`` so
+        ``get_git_client("acceptance")`` finds it
+
+    Returns the work directory + GitClient. Tests should ask for the
+    public ``work_clone`` fixture instead of this private one.
+    """
+    tmp = tmp_path_factory.mktemp("acceptance")
+    cache_dir = tmp / "cache"
+    cache_dir.mkdir()
+
+    config_path = tmp / "config.toml"
+    config_path.write_text(
+        f'[projects.{PROJECT_ALIAS}]\nproject_id = "{PROJECT_ID}"\n'
+    )
+
+    os.environ["OVERLEAF_MCP_CONFIG"] = str(config_path)
+    os.environ["OVERLEAF_MCP_CACHE"] = str(cache_dir)
+
+    workdir = cache_dir / PROJECT_ALIAS
+    GitClient.clone(_clone_url(), workdir)
+    _configure_local_identity(workdir)
+    return workdir, GitClient(workdir)
+
+
+@pytest.fixture(scope="session")
+def work_clone(_acceptance_env: tuple[Path, GitClient]) -> tuple[Path, GitClient]:
     """A fresh clone of the test project, valid for the whole session.
 
     Tests share this clone — the alternative (clone-per-test) would
@@ -102,10 +138,14 @@ def work_clone(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, GitClien
     isolation benefit, since the tests serialize via the CI
     concurrency group anyway.
     """
-    workdir = tmp_path_factory.mktemp("acceptance-work")
-    GitClient.clone(_clone_url(), workdir)
-    _configure_local_identity(workdir)
-    return workdir, GitClient(workdir)
+    return _acceptance_env
+
+
+@pytest.fixture(scope="session")
+def project_alias() -> str:
+    """The configured alias for the test project. Pass this to tool
+    handlers' ``project`` argument."""
+    return PROJECT_ALIAS
 
 
 @pytest.fixture
