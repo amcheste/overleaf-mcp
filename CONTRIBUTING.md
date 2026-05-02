@@ -25,6 +25,11 @@ uv run ruff check src/ tests/
 # Run a single test file or test
 uv run pytest tests/core/test_paths.py -v
 uv run pytest tests/core/test_paths.py::test_absolute_path_rejected -v
+
+# Acceptance suite (real Overleaf round-trips). Excluded from the default
+# run; opt in with -m. Requires OVERLEAF_TEST_PROJECT_ID and
+# OVERLEAF_TEST_TOKEN; skips cleanly without them.
+uv run pytest -m acceptance -v
 ```
 
 You'll need Python 3.11 or newer and [`uv`](https://github.com/astral-sh/uv).
@@ -88,6 +93,13 @@ Before opening a PR:
       reflects it
 - [ ] Pre-commit ran on every commit (or you ran `uv run ruff format`
       manually)
+
+Acceptance tests (`uv run pytest -m acceptance`) gate **releases**, not
+PRs — so you don't need them to run them on every PR. They run on
+every `v*.*.*` tag push (blocking PyPI publish if any fail) and once
+nightly (opening an issue if anything breaks). See
+[`tests/acceptance/README.md`](https://github.com/amcheste/overleaf-mcp/blob/main/tests/acceptance/README.md)
+for what's covered and how to add to the suite.
 
 ## Code style
 
