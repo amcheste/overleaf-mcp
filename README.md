@@ -14,6 +14,8 @@
   <a href="https://pypi.org/project/overleaf-mcp-server/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/overleaf-mcp-server.svg"></a>
   <a href="https://github.com/amcheste/overleaf-mcp/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/overleaf-mcp-server.svg"></a>
   <a href="https://github.com/amcheste/overleaf-mcp/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/amcheste/overleaf-mcp/actions/workflows/tests.yml/badge.svg?branch=develop"></a>
+  <a href="https://codecov.io/gh/amcheste/overleaf-mcp"><img alt="Coverage" src="https://codecov.io/gh/amcheste/overleaf-mcp/branch/develop/graph/badge.svg"></a>
+  <a href="https://pepy.tech/project/overleaf-mcp-server"><img alt="Downloads" src="https://static.pepy.tech/badge/overleaf-mcp-server/month"></a>
 </p>
 
 ---

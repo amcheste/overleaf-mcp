@@ -50,7 +50,17 @@ jobs:
         run: uv run ruff check src/ tests/
 
       - name: Test with coverage
-        run: uv run pytest --cov
+        run: uv run pytest --cov --cov-report=xml --cov-report=term
+
+      # Upload coverage from one matrix cell to Codecov (any cell would
+      # do — coverage doesn't differ across OS/Python combinations for
+      # this codebase, so we don't need to merge multiple uploads).
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false  # don't gate the build on Codecov outages
 
   # Single required check name regardless of how the matrix grows.
   # Branch protection requires `Tests / All passed`, not each cell.
