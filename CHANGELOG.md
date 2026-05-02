@@ -6,9 +6,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
-### Planned for v0.3
+## [0.3.0] - Remote deployment
 
-- HTTP/SSE transport for remote / multi-client setups (enables claude.ai web)
+### Added
+
+- **Streamable HTTP transport.** New `overleaf-mcp serve-http` subcommand exposes the server over HTTP using the MCP SDK's modern Streamable HTTP transport (the one claude.ai web uses). Defaults to `127.0.0.1:8080`; `--host 0.0.0.0` + a reverse proxy gets you public access. Same tool surface, same behavior — only the wire layer differs from stdio.
+- **Mandatory bearer-token auth on the HTTP path.** Server refuses to start without `OVERLEAF_MCP_AUTH_TOKEN` set, because the keychain holds the user's Overleaf tokens and exposing those to an open HTTP port would be wrong. There is no "open mode" flag, even for local testing.
+  - Endpoint: `POST /mcp/` (trailing slash required) carrying `Authorization: Bearer <token>`.
+  - Token check uses `hmac.compare_digest` so timing on a partial-match attempt doesn't leak the token byte-by-byte.
+- **`/healthz` endpoint** returns `{"status": "ok"}` and is exempt from auth so monitoring doesn't need credentials.
+- **`core/auth.py`** module with `resolve_auth_token()` and `check_bearer_token()` — transport-agnostic primitives so any future transport (websocket, etc.) reuses the same auth model.
+
+### Notes
+
+- TLS is intentionally out of scope; use a reverse proxy (nginx, caddy, cloudflare) for it. Keeps the server's dep graph small.
+- The stdio transport (`overleaf-mcp serve`) is unchanged. Existing Claude Desktop configs keep working.
+- Real-socket integration test spins up uvicorn, drives the MCP wire format with the SDK's `streamable_http_client`, and round-trips a tool call through bearer auth — the same code path claude.ai web uses.
 
 ## [0.2.0] - Tool surface completion
 

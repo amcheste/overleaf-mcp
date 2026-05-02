@@ -27,6 +27,37 @@ def serve() -> None:
     _serve_main()
 
 
+@cli.command("serve-http")
+@click.option(
+    "--host",
+    default="127.0.0.1",
+    show_default=True,
+    help="Bind address. Default loopback-only; pass 0.0.0.0 to bind all "
+    "interfaces (then put a TLS-terminating reverse proxy in front).",
+)
+@click.option(
+    "--port",
+    default=8080,
+    show_default=True,
+    type=int,
+    help="Bind port.",
+)
+def serve_http(host: str, port: int) -> None:
+    """Run the MCP server over Streamable HTTP.
+
+    Requires the OVERLEAF_MCP_AUTH_TOKEN env var to be set; refuses to
+    start without it. Clients send 'Authorization: Bearer <token>' on
+    every request to /mcp. The /healthz endpoint is exempt from auth
+    and returns {"status": "ok"} for monitoring.
+    """
+    # Lazy import: keeps the stdio path from pulling in starlette/uvicorn
+    # at module import time (they're already in our deps via mcp, but the
+    # import cost adds up for a fast 'serve' startup).
+    from overleaf_mcp.transports.streamable_http import main as _http_main
+
+    _http_main(host=host, port=port)
+
+
 @cli.command()
 @click.option(
     "--alias",

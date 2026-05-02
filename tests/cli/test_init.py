@@ -232,6 +232,42 @@ def test_serve_invokes_stdio_main(monkeypatch: pytest.MonkeyPatch) -> None:
     assert called == [True]
 
 
+def test_serve_http_invokes_streamable_http_main(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`serve-http` is lazy-imported, so we patch where it's looked up
+    (the streamable_http module) rather than in cli.main's namespace."""
+    called: list[dict] = []
+
+    def fake_main(*, host: str, port: int) -> None:
+        called.append({"host": host, "port": port})
+
+    monkeypatch.setattr(
+        "overleaf_mcp.transports.streamable_http.main", fake_main
+    )
+    result = CliRunner().invoke(
+        cli, ["serve-http", "--host", "0.0.0.0", "--port", "9001"]
+    )
+    assert result.exit_code == 0, result.output
+    assert called == [{"host": "0.0.0.0", "port": 9001}]
+
+
+def test_serve_http_defaults_to_loopback_8080(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    called: list[dict] = []
+
+    def fake_main(*, host: str, port: int) -> None:
+        called.append({"host": host, "port": port})
+
+    monkeypatch.setattr(
+        "overleaf_mcp.transports.streamable_http.main", fake_main
+    )
+    result = CliRunner().invoke(cli, ["serve-http"])
+    assert result.exit_code == 0
+    assert called == [{"host": "127.0.0.1", "port": 8080}]
+
+
 def test_version_flag_prints_package_version() -> None:
     """Regression test for the v0.1.0 bug where --version crashed because
     click's auto-detection looked up 'overleaf_mcp' (module name) instead
