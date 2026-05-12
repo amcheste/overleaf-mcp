@@ -57,7 +57,7 @@ jobs:
       # this codebase, so we don't need to merge multiple uploads).
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           files: ./coverage.xml
           fail_ci_if_error: false  # don't gate the build on Codecov outages
