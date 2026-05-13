@@ -6,12 +6,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-12
+
 ### Added
 
 - **Acceptance test suite** (`tests/acceptance/`): 13 end-to-end tests against a real Overleaf project covering every tool (read, write, sync). Each test does the action via the actual MCP tool handler and verifies the change reached Overleaf by re-cloning fresh.
 - **Acceptance gate on releases.** `release.yml` now runs the acceptance suite before build/publish. A failing acceptance test blocks the PyPI publish.
 - **Nightly canary** (`nightly.yml`): runs the acceptance suite at 06:00 UTC daily and opens a GitHub issue on failure. Catches upstream changes (Overleaf API, mcp SDK, token rotation overdue) within ~24h.
 - `pytest -m acceptance` opt-in pattern; default `pytest` run excludes the suite via `addopts`. Suite skips cleanly without `OVERLEAF_TEST_*` secrets so forks and local dev never try to hit a remote they can't authenticate against.
+- **Brand banner** (`assets/banner.{svg,png}`) per [`banner-spec.md`](https://github.com/amcheste/alanchester-brand/blob/main/docs/banner-spec.md). README references the SVG at the top.
+- **MkDocs Material documentation site** + GitHub Pages deploy workflow + README docs badge.
+- **Codecov upload** from CI; Coverage and Downloads badges on README.
+- **CONTRIBUTING.md**, **EXAMPLES.md**, deployment recipes, README troubleshooting section.
+- **Dependabot** for actions + dependencies; pre-commit hooks.
+
+### Changed
+
+- README badges and prose aligned to brand system (license in Hunter Green, version in Ink).
+- Dependency bumps: `codecov-action` 5 → 6, `setup-uv` 3 → 7, `download-artifact` 4 → 8, `setup-python` 5 → 6, `upload-artifact` 4 → 7, `ruff` bumped.
 
 ## [0.3.0] - Remote deployment
 
