@@ -1,0 +1,92 @@
+site_name: overleaf-mcp-server
+site_description: Edit your Overleaf projects from Claude. Local, auditable, single-user by design.
+site_url: https://amcheste.github.io/overleaf-mcp/
+repo_url: https://github.com/amcheste/overleaf-mcp
+repo_name: amcheste/overleaf-mcp
+edit_uri: edit/develop/docs/
+copyright: Copyright &copy; 2026 Alan Chester
+
+theme:
+  name: material
+  logo: images/banner.png
+  favicon: images/banner.png
+  font:
+    text: IBM Plex Sans
+    code: IBM Plex Mono
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.action.edit
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/brand.css
+
+plugins:
+  - search
+  - include-markdown
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Tools: tools.md
+  - Examples: examples.md
+  - Deployment:
+      - Overview: deployment/index.md
+      - Caddy: deployment/caddy.md
+      - nginx: deployment/nginx.md
+      - Fly.io: deployment/fly-io.md
+  - Security: security.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/amcheste/overleaf-mcp
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/overleaf-mcp-server/

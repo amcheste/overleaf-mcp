@@ -1,4 +1,4 @@
-# Overleaf MCP Server — architecture notes
+# Overleaf MCP Server: architecture notes
 
 Project-local context for Claude sessions. The [README.md](README.md) is for end users; this file is for contributors (human or AI) working on the server itself.
 
@@ -21,9 +21,9 @@ Every write tool (`edit_file`, `create_file`, `delete_file`) follows the same fl
 4. `git commit` with a generated message and the configured author
 5. `git push` to Overleaf
 
-If you ever find yourself reaching for an "Overleaf REST API" call, stop — there isn't one. The answer is always a git operation against the cached clone.
+If you ever find yourself reaching for an "Overleaf REST API" call, stop. There isn't one. The answer is always a git operation against the cached clone.
 
-We shell out to `git` via `subprocess` rather than using GitPython. The design goal is auditability — the dependency graph should be readable in five minutes.
+We shell out to `git` via `subprocess` rather than using GitPython. The design goal is auditability: the dependency graph should be readable in five minutes.
 
 ## GitHub mirroring is out of scope
 
@@ -31,7 +31,7 @@ Users who want a GitHub backup add GitHub as a second remote on their own local 
 
 ## Credentials never touch disk
 
-Tokens live in the OS keychain (primary) or environment variables (fallback, for CI/power users). The config file contains project aliases + IDs only — never tokens. See [src/overleaf_mcp/core/credentials.py](src/overleaf_mcp/core/credentials.py) for the resolution order.
+Tokens live in the OS keychain (primary) or environment variables (fallback, for CI/power users). The config file contains project aliases + IDs only, never tokens. See [src/overleaf_mcp/core/credentials.py](src/overleaf_mcp/core/credentials.py) for the resolution order.
 
 ## Scope discipline
 

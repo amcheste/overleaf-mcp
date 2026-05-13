@@ -6,22 +6,41 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-12
+
+### Added
+
+- **Acceptance test suite** (`tests/acceptance/`): 13 end-to-end tests against a real Overleaf project covering every tool (read, write, sync). Each test does the action via the actual MCP tool handler and verifies the change reached Overleaf by re-cloning fresh.
+- **Acceptance gate on releases.** `release.yml` now runs the acceptance suite before build/publish. A failing acceptance test blocks the PyPI publish.
+- **Nightly canary** (`nightly.yml`): runs the acceptance suite at 06:00 UTC daily and opens a GitHub issue on failure. Catches upstream changes (Overleaf API, mcp SDK, token rotation overdue) within ~24h.
+- `pytest -m acceptance` opt-in pattern; default `pytest` run excludes the suite via `addopts`. Suite skips cleanly without `OVERLEAF_TEST_*` secrets so forks and local dev never try to hit a remote they can't authenticate against.
+- **Brand banner** (`assets/banner.{svg,png}`) per [`banner-spec.md`](https://github.com/amcheste/alanchester-brand/blob/main/docs/banner-spec.md). README references the SVG at the top.
+- **MkDocs Material documentation site** + GitHub Pages deploy workflow + README docs badge.
+- **Codecov upload** from CI; Coverage and Downloads badges on README.
+- **CONTRIBUTING.md**, **EXAMPLES.md**, deployment recipes, README troubleshooting section.
+- **Dependabot** for actions + dependencies; pre-commit hooks.
+
+### Changed
+
+- README badges and prose aligned to brand system (license in Hunter Green, version in Ink).
+- Dependency bumps: `codecov-action` 5 → 6, `setup-uv` 3 → 7, `download-artifact` 4 → 8, `setup-python` 5 → 6, `upload-artifact` 4 → 7, `ruff` bumped.
+
 ## [0.3.0] - Remote deployment
 
 ### Added
 
-- **Streamable HTTP transport.** New `overleaf-mcp serve-http` subcommand exposes the server over HTTP using the MCP SDK's modern Streamable HTTP transport (the one claude.ai web uses). Defaults to `127.0.0.1:8080`; `--host 0.0.0.0` + a reverse proxy gets you public access. Same tool surface, same behavior — only the wire layer differs from stdio.
+- **Streamable HTTP transport.** New `overleaf-mcp serve-http` subcommand exposes the server over HTTP using the MCP SDK's modern Streamable HTTP transport (the one claude.ai web uses). Defaults to `127.0.0.1:8080`; `--host 0.0.0.0` + a reverse proxy gets you public access. Same tool surface, same behavior. Only the wire layer differs from stdio.
 - **Mandatory bearer-token auth on the HTTP path.** Server refuses to start without `OVERLEAF_MCP_AUTH_TOKEN` set, because the keychain holds the user's Overleaf tokens and exposing those to an open HTTP port would be wrong. There is no "open mode" flag, even for local testing.
   - Endpoint: `POST /mcp/` (trailing slash required) carrying `Authorization: Bearer <token>`.
   - Token check uses `hmac.compare_digest` so timing on a partial-match attempt doesn't leak the token byte-by-byte.
 - **`/healthz` endpoint** returns `{"status": "ok"}` and is exempt from auth so monitoring doesn't need credentials.
-- **`core/auth.py`** module with `resolve_auth_token()` and `check_bearer_token()` — transport-agnostic primitives so any future transport (websocket, etc.) reuses the same auth model.
+- **`core/auth.py`** module with `resolve_auth_token()` and `check_bearer_token()`: transport-agnostic primitives so any future transport (websocket, etc.) reuses the same auth model.
 
 ### Notes
 
 - TLS is intentionally out of scope; use a reverse proxy (nginx, caddy, cloudflare) for it. Keeps the server's dep graph small.
 - The stdio transport (`overleaf-mcp serve`) is unchanged. Existing Claude Desktop configs keep working.
-- Real-socket integration test spins up uvicorn, drives the MCP wire format with the SDK's `streamable_http_client`, and round-trips a tool call through bearer auth — the same code path claude.ai web uses.
+- Real-socket integration test spins up uvicorn, drives the MCP wire format with the SDK's `streamable_http_client`, and round-trips a tool call through bearer auth: the same code path claude.ai web uses.
 
 ## [0.2.0] - Tool surface completion
 
@@ -48,14 +67,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 - **Non-interactive `init`.**  `overleaf-mcp init` now accepts `--alias`, `--project-id`, `--display-name`, and `--force` flags so the command is fully scriptable.  Passing `--alias` engages non-interactive mode end-to-end: missing required flags fail fast (no silent stdin reads), `--project-id` becomes required, and an existing alias requires `--force` to overwrite (no confirm prompt).  The bare interactive form (`overleaf-mcp init`) is unchanged.
 - **Non-interactive `auth add`.**  Two new options for token entry without TTY prompts:
-  - `--token-stdin` reads the token from stdin (`printf '%s' "$TOK" | overleaf-mcp auth add ...`).  Recommended for scripts — keeps the token off the process command line.
+  - `--token-stdin` reads the token from stdin (`printf '%s' "$TOK" | overleaf-mcp auth add ...`).  Recommended for scripts, since it keeps the token off the process command line.
   - `--token-from-env VAR_NAME` reads the token from a named environment variable.  Empty or unset variables fail fast.
   - The two options are mutually exclusive; passing both is a usage error.
   - There is intentionally no `--token VALUE` flag because values on the command line leak via `ps`.
 
 ### Notes
 
-- These additions are purely additive — existing interactive flows and tests keep working unchanged (26 pre-existing CLI tests still pass; 15 new tests cover the flag paths).
+- These additions are purely additive. Existing interactive flows and tests keep working unchanged (26 pre-existing CLI tests still pass; 15 new tests cover the flag paths).
 
 ## [0.1.1] - Patch release
 

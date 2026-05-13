@@ -10,10 +10,17 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/overleaf-mcp-server/"><img alt="PyPI" src="https://img.shields.io/pypi/v/overleaf-mcp-server.svg"></a>
-  <a href="https://pypi.org/project/overleaf-mcp-server/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/overleaf-mcp-server.svg"></a>
-  <a href="https://github.com/amcheste/overleaf-mcp/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/overleaf-mcp-server.svg"></a>
+  <a href="https://pypi.org/project/overleaf-mcp-server/"><img alt="PyPI" src="https://img.shields.io/pypi/v/overleaf-mcp-server.svg?color=0B0B0C"></a>
+  <a href="https://pypi.org/project/overleaf-mcp-server/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/overleaf-mcp-server.svg?color=0B0B0C"></a>
+  <a href="https://github.com/amcheste/overleaf-mcp/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/overleaf-mcp-server.svg?color=1F4D3A"></a>
   <a href="https://github.com/amcheste/overleaf-mcp/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/amcheste/overleaf-mcp/actions/workflows/tests.yml/badge.svg?branch=develop"></a>
+  <a href="https://codecov.io/gh/amcheste/overleaf-mcp"><img alt="Coverage" src="https://codecov.io/gh/amcheste/overleaf-mcp/branch/develop/graph/badge.svg"></a>
+  <a href="https://pepy.tech/project/overleaf-mcp-server"><img alt="Downloads" src="https://static.pepy.tech/badge/overleaf-mcp-server/month"></a>
+  <a href="https://amcheste.github.io/overleaf-mcp/"><img alt="Docs" src="https://img.shields.io/badge/docs-mkdocs--material-0B0B0C.svg"></a>
+</p>
+
+<p align="center">
+  <strong><a href="https://amcheste.github.io/overleaf-mcp/">📖 Full documentation →</a></strong>
 </p>
 
 ---
@@ -25,12 +32,12 @@ A local Model Context Protocol server that gives Claude five tools for working w
 ## What it is not
 
 - Not a replacement for Overleaf
-- Not a hosted multi-user service — single researcher, single Claude session, stdio transport
-- Not a LaTeX compiler — Overleaf still does the rendering
-- No branch / merge / diff tooling — use git directly for that
+- Not a hosted multi-user service. Single researcher, single Claude session, stdio transport.
+- Not a LaTeX compiler. Overleaf still does the rendering.
+- No branch / merge / diff tooling. Use git directly for that.
 - No real-time collaboration with humans editing in the Overleaf web UI at the same moment (use Overleaf's native real-time collab for that; the MCP server pulls before every write to stay honest, but doesn't subscribe to live updates)
 
-If those constraints feel restrictive, that's deliberate — see the [project notes](CLAUDE.md) for the design rationale.
+If those constraints feel restrictive, that's deliberate. See the [project notes](CLAUDE.md) for the design rationale.
 
 ## Requirements
 
@@ -88,7 +95,7 @@ overleaf-mcp init \
     --display-name "My Paper"
 # add --force to overwrite an existing alias without prompting
 
-# 2. Store the token via stdin (preferred — keeps it off the process command line)
+# 2. Store the token via stdin (preferred: keeps it off the process command line)
 printf '%s' "$OVERLEAF_TOKEN" | overleaf-mcp auth add --project my-paper --token-stdin
 
 # or read from a named environment variable
@@ -121,7 +128,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
 }
 ```
 
-Fully quit and relaunch Claude Desktop (cmd-Q on macOS — closing the window isn't enough). In a new conversation, ask Claude something like *"use overleaf list_projects"* to verify.
+Fully quit and relaunch Claude Desktop (cmd-Q on macOS, since closing the window isn't enough). In a new conversation, ask Claude something like *"use overleaf list_projects"* to verify.
 
 ## Remote deployment (HTTP, for claude.ai web)
 
@@ -141,8 +148,8 @@ overleaf-mcp serve-http --host 0.0.0.0 --port 8080
 ```
 
 Endpoints:
-- **`POST /mcp/`** — the MCP endpoint. Requires `Authorization: Bearer <token>`. Trailing slash matters.
-- **`GET /healthz`** — monitoring. Returns `{"status": "ok"}` with no auth.
+- **`POST /mcp/`**: the MCP endpoint. Requires `Authorization: Bearer <token>`. Trailing slash matters.
+- **`GET /healthz`**: monitoring. Returns `{"status": "ok"}` with no auth.
 
 In claude.ai's connector settings, point at `https://your-host/mcp/` and set the bearer token. claude.ai handles the rest.
 
@@ -167,6 +174,29 @@ In claude.ai's connector settings, point at `https://your-host/mcp/` and set the
 | `sync` | Pulls latest from Overleaf into the local clone |
 | `project_status` | File count, dirty state, last-commit summary |
 
+For concrete usage prompts and recipes, see [EXAMPLES.md](EXAMPLES.md).
+
+## Troubleshooting
+
+When something doesn't work, run `overleaf-mcp doctor` first. It
+diagnoses most setup problems and prints the exact command to fix them.
+Common cases beyond that:
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `doctor` says **Token: FAIL** | No token registered for that alias | `overleaf-mcp auth add --project <alias>` |
+| `doctor` says **Remote: FAIL** | Wrong/revoked Overleaf token, or network blocked | Re-issue the Overleaf token (Account Settings → Git Integration), then `overleaf-mcp auth add --project <alias>` again |
+| `doctor` says **Clone: missing** | Project not cloned yet | `overleaf-mcp project clone <alias>` |
+| `doctor` says **Git author: FAIL** | System git config missing user.name / user.email | `git config --global user.name "Your Name"` and `git config --global user.email "you@example.com"` |
+| `serve-http` exits immediately with `OVERLEAF_MCP_AUTH_TOKEN is not set` | The HTTP transport refuses to start without auth | `export OVERLEAF_MCP_AUTH_TOKEN="$(openssl rand -hex 32)"` then re-run |
+| Claude Desktop sees no tools | Either config file isn't valid JSON, or Claude Desktop wasn't fully quit (cmd-Q) | Validate JSON, then cmd-Q (not just close window) and reopen |
+| claude.ai web returns 401 | Wrong bearer token, or wrong scheme (`Basic` instead of `Bearer`), or missing trailing slash on `/mcp/` | Check all three. The URL must be `https://your-host/mcp/` with a trailing slash |
+| `edit_file` fails with `git push --ff-only` rejected | Someone (or the Overleaf web UI) edited the project after your last pull | The next `edit_file` will pull first and try again. If it persists, the local clone has diverged. Run `cd ~/.cache/overleaf-mcp/<alias> && git status` to inspect |
+
+For HTTP-transport deployment beyond local use, see the recipes under
+[`docs/deployment/`](docs/deployment/): Caddy, nginx, and Fly.io
+walkthroughs.
+
 ## GitHub mirror (optional)
 
 The MCP server only knows about your Overleaf remote. If you want a GitHub backup of a project, add it as a second remote on the local clone:
@@ -177,12 +207,12 @@ git remote add github git@github.com:you/my-paper-mirror.git
 git push github main
 ```
 
-Then `git push github main` whenever you want to update the mirror, or wire up a cron / launchd job. The MCP server intentionally doesn't manage GitHub — that boundary keeps the server's surface small and the mirror under your control.
+Then `git push github main` whenever you want to update the mirror, or wire up a cron / launchd job. The MCP server intentionally doesn't manage GitHub. That boundary keeps the server's surface small and the mirror under your control.
 
 ## Security
 
-- Tokens are stored in the OS keychain (`keyring` library — macOS Keychain, Windows Credential Manager, libsecret on Linux). Never on disk.
-- The config file (`~/.config/overleaf-mcp/config.toml`) contains aliases and project IDs only — no secrets. Safe to put under version control if you really want to.
+- Tokens are stored in the OS keychain (`keyring` library: macOS Keychain, Windows Credential Manager, libsecret on Linux). Never on disk.
+- The config file (`~/.config/overleaf-mcp/config.toml`) contains aliases and project IDs only. No secrets. Safe to put under version control if you really want to.
 - Subprocess git invocations pass tokens via env vars consumed by a transient `GIT_ASKPASS` script. Tokens never appear on the subprocess command line, so they don't show in `ps`.
 - The server only talks to `git.overleaf.com` and the local filesystem. No telemetry, no analytics, no other network traffic.
 
@@ -199,4 +229,4 @@ Bug reports and PRs welcome. See [CLAUDE.md](CLAUDE.md) for project-local design
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

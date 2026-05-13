@@ -1,0 +1,79 @@
+name: Nightly acceptance canary
+
+# Runs the acceptance suite once a day, independent of PRs and tags,
+# so we catch upstream breakage (Overleaf API change, mcp SDK update,
+# token rotation overdue) within ~24h instead of at the next release.
+# Failures auto-open an issue tagged 'nightly-failure'.
+
+on:
+  schedule:
+    # 06:00 UTC daily. Picked off-peak relative to working hours so a
+    # failure has time to be triaged before anyone tries to ship.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  acceptance:
+    name: Nightly acceptance suite
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'amcheste/overleaf-mcp' }}
+    concurrency:
+      group: overleaf-real-ci
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Sync dependencies
+        run: uv sync --extra dev
+
+      - name: Run acceptance suite
+        env:
+          OVERLEAF_TEST_PROJECT_ID: ${{ secrets.OVERLEAF_TEST_PROJECT_ID }}
+          OVERLEAF_TEST_TOKEN: ${{ secrets.OVERLEAF_TEST_TOKEN }}
+        run: uv run pytest -m acceptance -v
+
+      # Open an issue if the suite failed. We don't deduplicate — a
+      # second nightly failure will open a second issue, which is the
+      # signal we want ("this has been broken for two days").
+      - name: Open issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "Nightly acceptance suite failed (run ${GITHUB_RUN_ID})" \
+            --label "bug,nightly-failure" \
+            --body "$(cat <<EOF
+          The nightly acceptance suite against the real Overleaf test project failed.
+
+          **Run:** https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+
+          ## Common causes
+
+          - Overleaf API or git remote behaviour changed upstream
+          - \`OVERLEAF_TEST_TOKEN\` rotated or revoked
+          - Test project deleted / made inaccessible
+          - mcp SDK update broke a tool handler
+          - Network blip during the run (re-run the workflow once before
+            assuming a real regression)
+
+          ## What to do
+
+          1. Re-run the failed workflow once. If it goes green, close this issue with a "transient" comment.
+          2. If it fails again, look at the test names — they map to specific tools (\`test_create_file_lands_in_overleaf\`, etc.) so the failing area is usually obvious from the name alone.
+          3. If multiple unrelated tests fail, suspect upstream (Overleaf or mcp SDK) rather than a local regression.
+          EOF
+          )"
