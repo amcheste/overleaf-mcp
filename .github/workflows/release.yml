@@ -9,15 +9,21 @@ permissions:
   contents: read
 
 jobs:
-  # Acceptance gate: end-to-end suite against a real Overleaf project.
-  # If anything here fails, the release does NOT publish — the build
-  # and publish jobs both depend on this passing. Same concurrency
-  # group as the PR-level real-overleaf job so two CI runs never fight
-  # over the shared remote.
+  # Acceptance canary: end-to-end suite against a real Overleaf project.
+  # NON-BLOCKING. Overleaf git *write* requires an active premium plan, so
+  # gating the publish on this made releases hostage to a live paid
+  # third-party credential — a lapsed plan blocked an otherwise-good
+  # release. `continue-on-error` + the build job no longer `needs:` this,
+  # so a failure here does NOT stop the publish. It runs as a
+  # release-moment signal only; nightly.yml is the dedicated daily canary.
+  # To restore a hard gate: re-add `needs: acceptance` to build and drop
+  # `continue-on-error`. Same concurrency group as the PR-level
+  # real-overleaf job so two CI runs never fight over the shared remote.
   acceptance:
-    name: Acceptance tests against real Overleaf
+    name: Acceptance tests against real Overleaf (non-blocking)
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'amcheste/overleaf-mcp' }}
+    continue-on-error: true
     concurrency:
       group: overleaf-real-ci
       cancel-in-progress: false
@@ -43,7 +49,6 @@ jobs:
 
   build:
     name: Build distributions
-    needs: acceptance
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
