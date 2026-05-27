@@ -158,12 +158,20 @@ jobs:
   # Real-Overleaf round-trip stays single-OS. The integration is the
   # important signal; the OS-of-the-runner is incidental and would just
   # serialize against the shared remote.
+  #
+  # NON-BLOCKING (`continue-on-error`): Overleaf git write needs an active
+  # premium plan, so this can't be a hard gate without making every PR
+  # hostage to a live paid credential (a lapsed plan would fail every PR).
+  # It runs as an informational signal — green when Overleaf write works,
+  # soft-fail otherwise. Branch protection requires "Tests / All passed",
+  # not this job, so a soft-fail never blocks a merge.
   # ─────────────────────────────────────────────────────────────────────
   real-overleaf:
-    name: Real Overleaf round-trip
+    name: Real Overleaf round-trip (non-blocking)
     needs: test-summary
     if: ${{ github.repository == 'amcheste/overleaf-mcp' }}
     runs-on: ubuntu-latest
+    continue-on-error: true
     concurrency:
       group: overleaf-real-ci
       cancel-in-progress: false
