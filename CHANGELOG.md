@@ -6,6 +6,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-05-27
+
+_First published release of the 0.4.x line. [0.4.0] was tagged (2026-05-12) but never reached PyPI — see Fixed. 0.4.1 ships all of 0.4.0's changes (listed below) with the release-pipeline issue resolved._
+
+### Fixed
+
+- **The release pipeline no longer blocks on the live Overleaf write suite.** Overleaf git write is a premium-only feature, so gating the PyPI publish on a live paid credential made releases brittle: when the test project's Overleaf premium lapsed, writes began returning HTTP 403, which silently blocked the v0.4.0 publish. The release `acceptance` job and the per-PR `real-overleaf` job are now non-blocking signals; `nightly.yml` remains the dedicated daily canary.
+
+### Changed
+
+- CI dependency/action bumps: `actions/deploy-pages` 4→5, `actions/upload-pages-artifact` 3→5, `actions/checkout` 4→6, plus grouped Python dependency updates.
+
 ## [0.4.0] - 2026-05-12
 
 ### Added
