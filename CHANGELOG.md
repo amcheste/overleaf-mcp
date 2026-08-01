@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-08-01
+
 ## [0.4.1] - 2026-05-27
 
 _First published release of the 0.4.x line. [0.4.0] was tagged (2026-05-12) but never reached PyPI — see Fixed. 0.4.1 ships all of 0.4.0's changes (listed below) with the release-pipeline issue resolved._
